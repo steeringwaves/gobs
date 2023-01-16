@@ -4,7 +4,8 @@
   "description": "gobs parallel project helper",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "examples-projects": "node index.js --config examples/projects.yaml"
   },
   "repository": {
     "type": "git",

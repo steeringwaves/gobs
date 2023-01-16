@@ -42,6 +42,9 @@ projects:
   path: "${vars.workspace}/testing/steeringwaves/${self.name}"
   groups:
     - steeringwaves
+  commands:
+    test:
+      - go test
 - name: go-stopwatch
   git:
     remotes:
@@ -52,6 +55,9 @@ projects:
   path: "${vars.workspace}/testing/steeringwaves/${self.name}"
   groups:
     - steeringwaves
+  commands:
+    test:
+      - go test
 - name: go-timestamp
   git:
     remotes:
@@ -62,6 +68,9 @@ projects:
   path: "${vars.workspace}/testing/steeringwaves/${self.name}"
   groups:
     - steeringwaves
+  commands:
+    test:
+      - go test
 - name: ts-github-template
   git:
     remotes:
@@ -82,6 +91,10 @@ projects:
   path: "${vars.workspace}/testing/steeringwaves/${self.name}"
   groups:
     - steeringwaves
+  commands:
+    test:
+      - npm install
+      - npm run test
 - name: js-context
   git:
     remotes:
@@ -92,6 +105,10 @@ projects:
   path: "${vars.workspace}/testing/steeringwaves/${self.name}"
   groups:
     - steeringwaves
+  commands:
+    test:
+      - npm install
+      - npm run test
 - name: js-sleep
   git:
     remotes:
@@ -102,6 +119,10 @@ projects:
   path: "${vars.workspace}/testing/steeringwaves/${self.name}"
   groups:
     - steeringwaves
+  commands:
+    test:
+      - npm install
+      - npm run test
 - name: js-stopwatch
   git:
     remotes:
@@ -112,3 +133,7 @@ projects:
   path: "${vars.workspace}/testing/steeringwaves/${self.name}"
   groups:
     - steeringwaves
+  commands:
+    test:
+      - npm install
+      - npm run test
