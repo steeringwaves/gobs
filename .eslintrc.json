@@ -1,0 +1,190 @@
+{
+	"root": true,
+	"env": {
+		"es6": true,
+		"node": true,
+		"jquery": true,
+		"browser": true
+	},
+	"extends": ["airbnb-base", "prettier"],
+	"plugins": ["prettier"],
+	"parserOptions": {
+		"project": "tsconfig.json"
+	},
+	"ignorePatterns": ["node_modules/", "dist/"],
+	"rules": {
+		"prettier/prettier": [
+			"error",
+			{
+				"trailingComma": "none",
+				"tabWidth": 4,
+				"semi": true,
+				"singleQuote": false,
+				"arrowParens": "always",
+				"endOfLine": "lf",
+				"printWidth": 125
+			}
+		],
+		"no-underscore-dangle": "off",
+		"no-tabs": "off",
+		"no-use-before-define": "off",
+		"camelcase": "off",
+		"no-plusplus": "off",
+		"func-names": "off",
+		"no-param-reassign": "off",
+		"spaced-comment": "off",
+		"no-restricted-globals": "off",
+		"no-prototype-builtins": "off",
+		"no-sync": "off",
+		"class-methods-use-this": "off",
+		"newline-per-chained-call": "off",
+		"space-before-function-paren": "off",
+		"no-control-regex": "off",
+		"no-lonely-if": "off",
+		"smart-tabs": "off",
+		"new-cap": "off",
+		"no-mixed-spaces-and-tabs": ["error", "smart-tabs"],
+		"operator-linebreak": "off",
+		"keyword-spacing": [
+			"warn",
+			{
+				"before": true,
+				"after": true
+			}
+		],
+		"space-unary-ops": [
+			1,
+			{
+				"words": true,
+				"nonwords": false,
+				"overrides": {
+					"typeof": false,
+					"delete": false
+				}
+			}
+		],
+		"no-bitwise": ["warn"],
+		"comma-dangle": [
+			"error",
+			{
+				"functions": "never"
+			}
+		],
+		"no-multiple-empty-lines": [
+			"error",
+			{
+				"max": 3,
+				"maxEOF": 3,
+				"maxBOF": 0
+			}
+		],
+		"prefer-destructuring": "off",
+		"prefer-promise-reject-errors": "warn",
+		"indent": "off",
+		"eqeqeq": "error",
+		"linebreak-style": ["off"],
+		"quotes": ["off"],
+		"semi": ["error", "always"],
+		"no-unused-vars": ["warn"],
+		"no-var": ["error"],
+		"prefer-const": ["warn"],
+		"curly": ["error"],
+		"no-else-return": ["warn"],
+		"no-implicit-coercion": ["warn"],
+		"no-multi-spaces": ["warn"],
+		"comma-style": ["warn", "last"],
+		"max-len": [
+			"off",
+			{
+				"code": 1600,
+				"ignoreStrings": true,
+				"ignoreRegExpLiterals": true
+			}
+		],
+		"yoda": [
+			"error",
+			"always",
+			{
+				"onlyEquality": true
+			}
+		],
+		"implicit-arrow-linebreak": ["off"],
+		"no-continue": "off",
+		"no-constant-condition": [
+			"error",
+			{
+				"checkLoops": false
+			}
+		],
+		"import/no-extraneous-dependencies": ["off"]
+	},
+	"overrides": [
+		{
+			"files": ["*.ts", "*.tsx"],
+			"extends": ["airbnb-typescript/base"],
+			"rules": {
+				"@typescript-eslint/no-underscore-dangle": "off",
+				"@typescript-eslint/no-tabs": "off",
+				"@typescript-eslint/no-use-before-define": "off",
+				"@typescript-eslint/camelcase": "off",
+				"@typescript-eslint/no-plusplus": "off",
+				"@typescript-eslint/func-names": "off",
+				"@typescript-eslint/no-param-reassign": "off",
+				"@typescript-eslint/spaced-comment": "off",
+				"@typescript-eslint/no-restricted-globals": "off",
+				"@typescript-eslint/no-prototype-builtins": "off",
+				"@typescript-eslint/no-sync": "off",
+				"@typescript-eslint/class-methods-use-this": "off",
+				"@typescript-eslint/newline-per-chained-call": "off",
+				"@typescript-eslint/space-before-function-paren": "off",
+				"@typescript-eslint/no-control-regex": "off",
+				"@typescript-eslint/no-lonely-if": "off",
+				"@typescript-eslint/smart-tabs": "off",
+				"@typescript-eslint/new-cap": "off",
+				"@typescript-eslint/operator-linebreak": "off",
+				"@typescript-eslint/keyword-spacing": [
+					"warn",
+					{
+						"before": true,
+						"after": true
+					}
+				],
+				"@typescript-eslint/comma-dangle": [
+					"error",
+					{
+						"functions": "never"
+					}
+				],
+				"@typescript-eslint/prefer-destructuring": "off",
+				"@typescript-eslint/indent": "off",
+				"@typescript-eslint/quotes": ["off"],
+				"@typescript-eslint/semi": ["error", "always"],
+				"@typescript-eslint/no-unused-vars": ["warn"],
+				"@typescript-eslint/max-len": [
+					"off",
+					{
+						"code": 1600,
+						"ignoreStrings": true,
+						"ignoreRegExpLiterals": true
+					}
+				],
+				"@typescript-eslint/no-continue": "off"
+			}
+		},
+		{
+			"files": ["**/*.test.js", "**/*.test.ts"],
+			"env": {
+				"jest": true
+			}
+		}
+	],
+	"settings": {
+		"import/external-module-folders": ["./"],
+		"import/resolver": {
+			"node": {
+				"extensions": [".js", ".jsx", ".ts", ".tsx"],
+				"moduleDirectory": ["./"]
+			}
+		}
+	}
+}

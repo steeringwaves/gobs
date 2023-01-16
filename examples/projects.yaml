@@ -1,0 +1,160 @@
+vars:
+  home_path: "${env.HOME}"
+  workspace: "${app.config_dir}/.test-workspace/projects"
+  remotes:
+    github: git@github.com
+
+templates:
+- name: active
+  file: "${app.config_dir}/workspace.hbs"
+  dest: "${vars.workspace}/active.code-workspace"
+  chmod: "0644"
+  tools:
+    paths:
+      clangd: /usr/bin/clangd
+      node: "${vars.home_path}/.local/bin/node"
+- name: gotidy
+  file: "${app.config_dir}/tidy.hbs"
+  # don't do this for our example
+  # dest: "${project.path}/tidy.sh"
+  chmod: "0755"
+  projects: "*"
+  example_dest: "${project.path}/tidy.sh"
+
+batches:
+  gotest:
+    - id: go-timer.test
+      project: go-timer
+      command: test
+    - id: go-stopwatch.test
+      upstream: go-timer.test
+      project: go-stopwatch
+      command: test
+      downstream: go-timestamp.test
+    # next level
+    - id: go-timestamp.test
+      project: go-timestamp
+      command: pwd
+    # finally
+    - id: gotest.done
+      project: go-timestamp
+      upstream:
+        - go-timestamp.test
+      exec: "echo done"
+
+projects:
+- name: go-github-template
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+- name: go-timer
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+  commands:
+    test:
+      - go test
+- name: go-stopwatch
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+  commands:
+    test:
+      - go test
+- name: go-timestamp
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+  commands:
+    test:
+      - go test
+- name: ts-github-template
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+- name: js-pinkypromise
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+  commands:
+    test:
+      - npm install
+      - npm run test
+- name: js-context
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+  commands:
+    test:
+      - npm install
+      - npm run test
+- name: js-sleep
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+  commands:
+    test:
+      - npm install
+      - npm run test
+- name: js-stopwatch
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+  commands:
+    test:
+      - npm install
+      - npm run test

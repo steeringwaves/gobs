@@ -1,0 +1,9 @@
+.git/**/*
+node_modules/**/*
+.deps/**/*
+.husky/**/*
+Release/**/*
+dist/**/*
+
+# Ignore all HTML files:
+*.html
