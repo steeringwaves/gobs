@@ -21,6 +21,27 @@ templates:
   projects: "*"
   example_dest: "${project.path}/tidy.sh"
 
+batches:
+  gotest:
+    - id: go-timer.test
+      project: go-timer
+      command: test
+    - id: go-stopwatch.test
+      upstream: go-timer.test
+      project: go-stopwatch
+      command: test
+      downstream: go-timestamp.test
+    # next level
+    - id: go-timestamp.test
+      project: go-timestamp
+      command: pwd
+    # finally
+    - id: gotest.done
+      project: go-timestamp
+      upstream:
+        - go-timestamp.test
+      exec: "echo done"
+
 projects:
 - name: go-github-template
   git:

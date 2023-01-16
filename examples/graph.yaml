@@ -3,7 +3,7 @@ vars:
   personal_workspace: "${app.config_dir}/.test-workspace/graph"
   arch: "x86_64"
 
-digraphs:
+batches:
   status:
     - id: wiki.status 
       project: wiki

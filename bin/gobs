@@ -417,8 +417,8 @@ async function main() {
 	);
 
 	yargs.command(
-		"digraph <command>",
-		"run predefined digraph inside projects",
+		"batch <command>",
+		"run predefined batch command",
 		(y) => {
 			y.completion("completion", async (current, argv, done) => {
 				const args = await setup(argv);

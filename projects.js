@@ -240,14 +240,14 @@ class Projects {
 			result.templates = templates;
 		}
 
-		if (_.isObject(this._config.digraphs)) {
-			result.digraph_names = Object.keys(this._config.digraphs);
-			// don't render digraph configs until we need them
-			// result.digraph_names.forEach((name) => {
-			// 	this._config.digraphs[name] = this.GetDiGraph(name);
+		if (_.isObject(this._config.batches)) {
+			result.batch_names = Object.keys(this._config.batches);
+			// don't render batch configs until we need them
+			// result.batch_names.forEach((name) => {
+			// 	this._config.batches[name] = this.GetDiGraph(name);
 			// })
 
-			result.digraphs = _.cloneDeep(this._config.digraphs); // TODO better name
+			result.batches = _.cloneDeep(this._config.batches); // TODO better name
 		}
 
 		// console.log(JSON.stringify(result, null, "\t"))
@@ -277,15 +277,15 @@ class Projects {
 		}
 	}
 
-	GetDiGraph(graphName) {
-		if (!this._config.digraphs || !this._config.digraphs[graphName]) {
-			throw new Error(`digraph ${graphName} not found`);
+	GetDiGraph(name) {
+		if (!this._config.batches || !this._config.batches[name]) {
+			throw new Error(`batch ${name} not found`);
 		}
 
 		let compiledDigraph;
 
 		try {
-			const compileWith = { self: _.cloneDeep(this._config.digraphs[graphName]) };
+			const compileWith = { self: _.cloneDeep(this._config.batches[name]) };
 			compileWith.env = _.cloneDeep(process.env);
 			compileWith.app = _.cloneDeep(this._opts);
 			compileWith.vars = _.cloneDeep(this._config.vars);
@@ -293,27 +293,27 @@ class Projects {
 				compileWith.vars.projects = undefined;
 			}
 
-			compiledDigraph = this._templateObject(_.cloneDeep(this._config.digraphs[graphName]), compileWith);
+			compiledDigraph = this._templateObject(_.cloneDeep(this._config.batches[name]), compileWith);
 		} catch (err) {
-			throw new Error(`failed to template digraph ${graphName}: ${err.message}`);
+			throw new Error(`failed to template batch ${name}: ${err.message}`);
 		}
 
-		const ids = compiledDigraph.map((digraph) => {
-			if (!_.isString(digraph.id) || "" === digraph.id) {
-				throw new Error(`digraph ${graphName} step has missing id`);
+		const ids = compiledDigraph.map((batch) => {
+			if (!_.isString(batch.id) || "" === batch.id) {
+				throw new Error(`batch ${name} step has missing id`);
 			}
 
-			if (!_.isString(digraph.project) || "" === digraph.project) {
-				throw new Error(`digraph ${graphName} step has missing project`);
+			if (!_.isString(batch.project) || "" === batch.project) {
+				throw new Error(`batch ${name} step has missing project`);
 			}
 
 			// we can't do this because if they specify a different group
-			// maybe digraph commands should ignore the group option completely?
-			// if (!_.find(result.projects, { name: digraph.project} )) {
-			// 	throw new Error(`digraph ${name} step has project ${digraph.project} that cannot be found`);
+			// maybe batch commands should ignore the group option completely?
+			// if (!_.find(result.projects, { name: batch.project} )) {
+			// 	throw new Error(`batch ${name} step has project ${batch.project} that cannot be found`);
 			// }
 
-			return digraph.id;
+			return batch.id;
 		});
 
 		const duplicates = _(ids)
@@ -323,7 +323,7 @@ class Projects {
 			.value();
 
 		if (duplicates.length > 0) {
-			throw new Error(`digraph ${graphName} has duplicate ids ${duplicates.join(" and ")}`);
+			throw new Error(`batch ${name} has duplicate ids ${duplicates.join(" and ")}`);
 		}
 
 		return compiledDigraph;

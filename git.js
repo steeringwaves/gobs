@@ -70,24 +70,48 @@ class Git {
 	}
 
 	async _processHandler(opts, handlerName) {
+		opts = _.defaultsDeep(opts, {
+			project: undefined
+		});
+
+		let projects;
+
+		if (_.isString(opts.project)) {
+			opts.project = [opts.project];
+		}
+
+		if (_.isArray(opts.project)) {
+			projects = [];
+
+			for (let i = 0; i < this._projects.length; i++) {
+				for (let j = 0; j < opts.project.length; j++) {
+					if (opts.project[j] === this._projects[i].name) {
+						projects.push(_.cloneDeep(this._projects[i]));
+					}
+				}
+			}
+		} else {
+			projects = _.cloneDeep(this._projects);
+		}
+
 		const args = {
 			projects_completed: 0,
-			num_projects: this._projects.length,
+			num_projects: projects.length,
 			changes: []
 		};
 
 		const handler = this[handlerName](opts, args);
 
 		if (opts.disable_parallel) {
-			for (let i = 0; i < this._projects.length; i++) {
-				await handler(this._projects[i]);
+			for (let i = 0; i < projects.length; i++) {
+				await handler(projects[i]);
 				// if(exit_code !== 0)
 				// {
 				// 	break;
 				// }
 			}
 		} else {
-			// this._projects.forEach(async(project) =>
+			// projects.forEach(async(project) =>
 			// {
 			// 	handler(project);
 			// });
@@ -95,8 +119,8 @@ class Git {
 			try {
 				const pqueue = new PQueue({ concurrency: 10 });
 
-				for (let i = 0; i < this._projects.length; i++) {
-					const project = this._projects[i];
+				for (let i = 0; i < projects.length; i++) {
+					const project = projects[i];
 
 					pqueue
 						.add(() => handler(project))

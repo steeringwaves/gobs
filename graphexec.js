@@ -70,6 +70,7 @@ class GraphExec {
 
 					this._git
 						.Run({
+							project: current_project.project,
 							no_exit: true,
 							command: current_project.command,
 							exec: current_project.exec
@@ -134,15 +135,15 @@ class GraphExec {
 		await p();
 	}
 
-	async ExecAll(graphName) {
+	async ExecAll(name) {
 		return new Promise(async (resolve, reject) => {
 			const start = new Date();
 
 			let projects;
-			const graph = this._opts.projects.Graph(graphName);
+			const graph = this._opts.projects.Graph(name);
 
 			if (!_.isArray(graph)) {
-				reject(new Error(`could not find graph ${graphName}`));
+				reject(new Error(`could not find graph ${name}`));
 			}
 
 			try {
@@ -177,7 +178,7 @@ class GraphExec {
 				null,
 				null,
 				`${new Timestamp().Get()}`,
-				`Completed execution for ${graphName} in ${elapsed.toFixed(3)} seconds`,
+				`Completed batch ${name} in ${elapsed.toFixed(3)} seconds`,
 				"green"
 			);
 
@@ -185,12 +186,12 @@ class GraphExec {
 		});
 	}
 
-	async ParallelExecAll(graphName) {
+	async ParallelExecAll(name) {
 		return new Promise(async (resolve, reject) => {
 			const start = new Date();
 
 			let projects;
-			const graph = this._opts.projects.GetDiGraph(graphName);
+			const graph = this._opts.projects.GetDiGraph(name);
 
 			try {
 				projects = this.CompileGraph(graph);
@@ -205,7 +206,7 @@ class GraphExec {
 			}
 
 			try {
-				await this._directedExec(graphName, projects);
+				await this._directedExec(name, projects);
 			} catch (error) {
 				if (error) {
 					if (error.message) {
@@ -222,7 +223,7 @@ class GraphExec {
 				null,
 				null,
 				`${new Timestamp().Get()}`,
-				`Completed execution for ${graphName} in ${elapsed.toFixed(3)} seconds`,
+				`Completed batch ${name} in ${elapsed.toFixed(3)} seconds`,
 				"green"
 			);
 
