@@ -2,10 +2,15 @@
   "name": "gobs",
   "version": "0.0.1",
   "description": "gobs parallel project helper",
-  "main": "index.js",
+  "main": "bin/gobs",
+  "bin": {
+    "gobs": "gobs"
+  },
+  "preferGlobal": true,
   "scripts": {
+    "gobs": "./bin/gobs",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "examples-projects": "node index.js --config examples/projects.yaml"
+    "examples-projects": "./bin/gobs --config examples/projects.yaml"
   },
   "repository": {
     "type": "git",
