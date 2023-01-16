@@ -16,7 +16,11 @@ Why does this exist? I work on a lot of different git repos at the same time and
 ## roadmap
 
 - [x] Allow multi-root configurations
-- [x] Allow filtering by groups eg `"test"` or even `"test || (home && 3dprinting)"
+- [x] Allow filtering by groups `--group` eg `"test"` or even `"test || (home && 3dprinting)"
+- [x] Allow filtering by out project(s) by name `--without`
+- [x] Allow specifying a single project by name `--project`
+- [x] Allow `run` to run command that is present in all projects
+- [x] Allow `foreach <command>` to run a specified shell command in all projects
 - [x] Configuration templating with handlebars
 - [x] Parallel execution option (right now it's on by default with `--no-parallel`)
 - [x] Specify projects that have no git repo
