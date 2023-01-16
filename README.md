@@ -37,6 +37,7 @@ Why does this exist? I work on a lot of different git repos at the same time and
 - [ ] Allow digraph commands to point to another file that defines them (include paths could be weird)
 - [ ] Allow project definitions to point to another file that defines them (include paths could be weird)
 - [ ] Allow option parsing via env variables (especially for specifying the configuration file)
+- [ ] Allow git project to specify a default branch name to checkout initially (eg legacy/next etc...)
 
 ## things not on the roadmap
 
