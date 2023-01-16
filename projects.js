@@ -98,6 +98,10 @@ class Projects {
 		}
 
 		if (_.isString(groups)) {
+			if ("*" === groups) {
+				return true;
+			}
+
 			// crazy logic to allow users to specify multiple groups eg `a && (b || c)`
 			// use a regex to catch parenthesis '()' and signs '&&' and or pipes '||' and ignore whitespace
 			// sub out any stringlike values for true/false bools if the project/group is found
@@ -140,6 +144,10 @@ class Projects {
 
 		if (_.isArray(groups)) {
 			for (let i = 0; i < groups.length; i++) {
+				if ("*" === groups[i]) {
+					return true;
+				}
+
 				if (groups[i] === project.name) {
 					return true;
 				}
@@ -154,7 +162,7 @@ class Projects {
 
 	async Load(opts) {
 		const result = {
-			groups: ["all"],
+			groups: ["*"],
 			names: [],
 			paths: [],
 			projects: [],
@@ -162,7 +170,7 @@ class Projects {
 		};
 
 		opts = _.defaultsDeep(opts, {
-			groups: ["all"],
+			groups: ["*"],
 			without: []
 		});
 
@@ -188,8 +196,6 @@ class Projects {
 			} catch (err) {
 				throw new Error(`failed to template configuration: ${err.message}`);
 			}
-
-			project.groups.push("all"); // add the "all" group to every project
 
 			if (!this._includeProject(project, opts.groups, undefined, opts.without)) {
 				return;
@@ -310,11 +316,11 @@ class Projects {
 		opts = _.defaultsDeep(opts, {
 			output: undefined,
 			verbose: false,
-			template: "all",
+			template: "*",
 			disable_parallel: false
 		});
 
-		if ("all" === opts.template) {
+		if ("*" === opts.template) {
 			opts.template = this._config.templates.map((v) => v.name);
 		}
 

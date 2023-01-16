@@ -260,7 +260,7 @@ async function main() {
 		(y) => {
 			y.positional("template", {
 				describe: "the template to use",
-				default: "all",
+				default: "*",
 				type: "string"
 			});
 
@@ -306,7 +306,7 @@ async function main() {
 			y.option("group", {
 				alias: "g",
 				describe: "the repo group to use",
-				default: "all",
+				default: "*",
 				type: "string"
 			});
 
@@ -363,7 +363,7 @@ async function main() {
 			y.option("group", {
 				alias: "g",
 				describe: "the repo group to use",
-				default: "all",
+				default: "*",
 				type: "string"
 			});
 
@@ -468,7 +468,7 @@ async function main() {
 					y.option("group", {
 						alias: "g",
 						describe: "the repo group to use",
-						default: "all",
+						default: "*",
 						type: "string"
 					});
 				},
@@ -506,7 +506,7 @@ async function main() {
 					y.option("group", {
 						alias: "g",
 						describe: "the repo group to use",
-						default: "all",
+						default: "*",
 						type: "string"
 					});
 
@@ -550,7 +550,7 @@ async function main() {
 					y.option("group", {
 						alias: "g",
 						describe: "the repo group to use",
-						default: "all",
+						default: "*",
 						type: "string"
 					});
 
@@ -643,7 +643,7 @@ async function main() {
 					y.option("group", {
 						alias: "g",
 						describe: "the repo group to use",
-						default: "all",
+						default: "*",
 						type: "string"
 					});
 
@@ -709,7 +709,7 @@ async function main() {
 					y.option("group", {
 						alias: "g",
 						describe: "the repo group to use",
-						default: "all",
+						default: "*",
 						type: "string"
 					});
 
@@ -837,7 +837,7 @@ async function main() {
 					y.option("group", {
 						alias: "g",
 						describe: "the repo group to use",
-						default: "all",
+						default: "*",
 						type: "string"
 					});
 
@@ -965,7 +965,7 @@ async function main() {
 					y.option("group", {
 						alias: "g",
 						describe: "the repo group to use",
-						default: "all",
+						default: "*",
 						type: "string"
 					});
 
@@ -1043,7 +1043,7 @@ async function main() {
 					y.option("group", {
 						alias: "g",
 						describe: "the repo group to use",
-						default: "all",
+						default: "*",
 						type: "string"
 					});
 
@@ -1101,7 +1101,7 @@ async function main() {
 					y.option("group", {
 						alias: "g",
 						describe: "the repo group to use",
-						default: "all",
+						default: "*",
 						type: "string"
 					});
 
@@ -1207,7 +1207,7 @@ async function main() {
 					y.option("group", {
 						alias: "g",
 						describe: "the repo group to use",
-						default: "all",
+						default: "*",
 						type: "string"
 					});
 
@@ -1299,7 +1299,7 @@ This flag disables these checks, and can cause the remote repository to lose com
 					y.option("group", {
 						alias: "g",
 						describe: "the repo group to use",
-						default: "all",
+						default: "*",
 						type: "string"
 					});
 
