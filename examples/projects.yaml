@@ -1,0 +1,114 @@
+vars:
+  home_path: "${env.HOME}"
+  workspace: "${app.config_dir}/.test-workspace/projects"
+  remotes:
+    github: git@github.com
+
+templates:
+- name: active
+  file: "${app.config_dir}/workspace.hbs"
+  dest: "${vars.workspace}/active.code-workspace"
+  chmod: "0644"
+  tools:
+    paths:
+      clangd: /usr/bin/clangd
+      node: "${vars.home_path}/.local/bin/node"
+- name: gotidy
+  file: "${app.config_dir}/tidy.hbs"
+  # don't do this for our example
+  # dest: "${project.path}/tidy.sh"
+  chmod: "0755"
+  projects: "*"
+  example_dest: "${project.path}/tidy.sh"
+
+projects:
+- name: go-github-template
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+- name: go-timer
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+- name: go-stopwatch
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+- name: go-timestamp
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+- name: ts-github-template
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+- name: js-pinkypromise
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+- name: js-context
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+- name: js-sleep
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves
+- name: js-stopwatch
+  git:
+    remotes:
+      origin:
+        url: "${vars.remotes.github}:/steeringwaves/${self.name}.git"
+      gitea:
+        url: "${vars.remotes.gitea}:/steeringwaves/${self.name}.git/"
+  path: "${vars.workspace}/testing/steeringwaves/${self.name}"
+  groups:
+    - steeringwaves

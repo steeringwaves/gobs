@@ -1,0 +1,99 @@
+{
+	"folders": [
+		{{#projects}}
+		{
+			"path": "{{path}}"
+		},
+		{{/projects}}
+	],
+	"settings": {
+		"editor.tabSize": 4,
+		"[yaml]": {
+			"editor.formatOnType": true,
+			"editor.formatOnSave": true
+		},
+		{{#self.tools.paths.node}}
+		"eslint.runtime": "{{.}}",
+		{{/self.tools.paths.node}}
+		"files.exclude": {
+			".git": true,
+			".deps": true,
+			"Release": true,
+			"node_modules": true,
+			"Release/**/*.js": {
+				"when": "$(basename).ts"
+			}
+		},
+		"files.watcherExclude": {
+			{{#projects}}
+			{
+				"{{path}}/node_modules/**": true,
+			},
+			"**/.git/objects/**": true,
+			"**/node_modules/**": true,
+			"**/Release/**": true,
+			"**/.deps/**": true
+		},
+		{{#self.tools.paths.clangd}}
+		"clangd.path": "{{.}}",
+		"clangd.arguments": [
+			"--background-index"
+		],
+		{{/self.tools.paths.clangd}}
+		"go.inferGopath": false,
+		"go.goroot": "{{vars.workspace}}/.local/go",
+		"go.gopath": "{{vars.workspace}}/.local/go/vendor:{{vars.workspace}}/gocode/vendor",
+		"go.toolsGopath": "{{vars.workspace}}/.local/go/vendor",
+		"go.formatTool": "gofmt",
+		"go.toolsEnvVars": {
+			"GOBIN": "{{vars.workspace}}/.local/go/vendor/bin/"
+		},
+		"godot_tools.editor_path": "{{vars.workspace}}/.local/bin/godot",
+		"files.associations": {
+			"*.c": "c",
+			"*.h": "c",
+			"*.cc": "cpp",
+			"*.cpp": "cpp",
+			"*.hpp": "cpp"
+		},
+		"editor.formatOnSave": false,
+		"eslint.alwaysShowStatus": true,
+		"eslint.lintTask.enable": true,
+		"eslint.format.enable": true,
+		"eslint.onIgnoredFiles": "warn",
+		"eslint.debug": true,
+		"[c]": {
+			"editor.formatOnType": true,
+			"editor.formatOnSave": true
+		},
+		"[cpp]": {
+			"editor.formatOnType": true,
+			"editor.formatOnSave": true
+		},
+		"[javascript]": {
+			"editor.codeActionsOnSave": {
+				"source.fixAll.eslint": true
+			},
+			"editor.defaultFormatter": "esbenp.prettier-vscode",
+			"editor.formatOnType": true,
+			"editor.formatOnSave": true
+		},
+		"[typescript]": {
+			"editor.codeActionsOnSave": {
+				"source.fixAll.eslint": true
+			},
+			"editor.defaultFormatter": "esbenp.prettier-vscode",
+			"editor.formatOnType": true,
+			"editor.formatOnSave": true
+		},
+		"[gdscript]": {
+			"editor.formatOnType": true,
+			"editor.formatOnSave": true
+		},
+		"C_Cpp.autocomplete": "Disabled",
+		"C_Cpp.errorSquiggles": "Disabled",
+		"C_Cpp.formatting": "Disabled",
+		"C_Cpp.intelliSenseEngine": "Disabled",
+		"git.ignoreLimitWarning": true
+	}
+}
