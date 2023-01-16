@@ -17,39 +17,13 @@ class GraphExec {
 		this._git = new Git(this._opts);
 	}
 
-	async _directedExec(graphName, projects) {
+	async _directedExec(projects, projects_topo) {
 		// setTimeout(() =>
 		// {
 		// 	console.log("done!");
 		// }, 10000);
 
 		const errors = [];
-		let projects_topo;
-
-		if (projects.Graph) {
-			try {
-				projects_topo = projects.Graph.TopologicalSort();
-			} catch (error) {
-				projects_topo = undefined;
-
-				if (error) {
-					if (error.message) {
-						this._log.Debug(
-							"TopologicalSort()",
-							"magenta",
-							`${new Timestamp().Get()}`,
-							`${error.message}. Proceeding with sequential execution`,
-							"red"
-						);
-					}
-				}
-			}
-		}
-
-		if (!projects_topo) {
-			await this.ExecAll(graphName);
-			return;
-		}
 
 		_.each(projects_topo, (current_service_vertex) => {
 			const current_project = _.find(projects.Projects, { id: current_service_vertex.ID });
@@ -140,7 +114,7 @@ class GraphExec {
 			const start = new Date();
 
 			let projects;
-			const graph = this._opts.projects.Graph(name);
+			const graph = this._opts.projects.GetDiGraph(name);
 
 			if (!_.isArray(graph)) {
 				reject(new Error(`could not find graph ${name}`));
@@ -159,12 +133,14 @@ class GraphExec {
 			}
 
 			for (let i = 0; i < projects.length; i++) {
-				const project = _.find(graph, { id: projects[i] });
+				const current_project = _.find(graph, { id: projects[i] });
 
 				try {
 					await this._git.Run({
-						command: project.command,
-						exec: project.exec
+						project: current_project.project,
+						no_exit: true,
+						command: current_project.command,
+						exec: current_project.exec
 					});
 				} catch (error) {
 					reject(error);
@@ -205,8 +181,35 @@ class GraphExec {
 				return;
 			}
 
+			let projects_topo;
+
+			if (projects.Graph) {
+				try {
+					projects_topo = projects.Graph.TopologicalSort();
+				} catch (error) {
+					projects_topo = undefined;
+
+					if (error) {
+						if (error.message) {
+							this._log.Debug(
+								"TopologicalSort()",
+								"magenta",
+								`${new Timestamp().Get()}`,
+								`${error.message}. Proceeding with sequential execution`,
+								"red"
+							);
+						}
+					}
+				}
+			}
+
+			if (!projects_topo) {
+				await this.ExecAll(name);
+				return;
+			}
+
 			try {
-				await this._directedExec(name, projects);
+				await this._directedExec(projects, projects_topo);
 			} catch (error) {
 				if (error) {
 					if (error.message) {

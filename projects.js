@@ -5,7 +5,7 @@
 
 const _ = require("lodash");
 const fs = require("fs");
-// const path = require("path");
+const path = require("path");
 const util = require("util");
 
 const Handlebars = require("handlebars");
@@ -214,6 +214,10 @@ class Projects {
 				}
 
 				project = this._templateObject(_.cloneDeep(project), compileWith);
+
+				if (_.isString(project.path)) {
+					project.path = path.resolve(path.normalize(project.path));
+				}
 			} catch (err) {
 				throw new Error(`failed to template configuration: ${err.message}`);
 			}
@@ -303,9 +307,9 @@ class Projects {
 				throw new Error(`batch ${name} step has missing id`);
 			}
 
-			if (!_.isString(batch.project) || "" === batch.project) {
-				throw new Error(`batch ${name} step has missing project`);
-			}
+			// if (!_.isString(batch.project) || "" === batch.project) {
+			// 	throw new Error(`batch ${name} step has missing project`);
+			// }
 
 			// we can't do this because if they specify a different group
 			// maybe batch commands should ignore the group option completely?

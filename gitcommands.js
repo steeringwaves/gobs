@@ -97,6 +97,9 @@ class GitCommands {
 	async ExecCommand(project, command, verbose) {
 		return new Promise((resolve, reject) => {
 			const cmd = `cd "${path.normalize(project.path)}/" && ${command}`;
+			if (verbose) {
+				this._log.Debug(`${project.name}`, "magenta", `${new Timestamp().Get()}`, `running ${cmd}`, "green");
+			}
 
 			const child = child_process.spawn("/bin/sh", ["-c", cmd]);
 

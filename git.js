@@ -77,7 +77,11 @@ class Git {
 		let projects;
 
 		if (_.isString(opts.project)) {
-			opts.project = [opts.project];
+			if ("*" === opts.project) {
+				projects = _.cloneDeep(this._projects);
+			} else {
+				opts.project = [opts.project];
+			}
 		}
 
 		if (_.isArray(opts.project)) {
@@ -2176,15 +2180,17 @@ class Git {
 		const handler = async (project) => {
 			const commands = [];
 
-			for (let i = 0; i < opts.command.length; i++) {
-				if (_.isObject(project.commands)) {
-					if (project.commands[opts.command[i]]) {
-						if (_.isString(project.commands[opts.command[i]])) {
-							commands.push(project.commands[opts.command[i]]);
-						}
+			if (project) {
+				for (let i = 0; i < opts.command.length; i++) {
+					if (_.isObject(project.commands)) {
+						if (project.commands[opts.command[i]]) {
+							if (_.isString(project.commands[opts.command[i]])) {
+								commands.push(project.commands[opts.command[i]]);
+							}
 
-						if (_.isArray(project.commands[opts.command[i]])) {
-							commands.push(...project.commands[opts.command[i]]);
+							if (_.isArray(project.commands[opts.command[i]])) {
+								commands.push(...project.commands[opts.command[i]]);
+							}
 						}
 					}
 				}
@@ -2202,7 +2208,14 @@ class Git {
 			}
 
 			let exists = false;
-			if (!project.git) {
+			if (!project) {
+				// just create a dummy one
+				exists = true;
+				project = {
+					name: "",
+					path: "./"
+				};
+			} else if (!project.git) {
 				// not a git repo
 				try {
 					await access(project.path, fs.constants.R_OK);
