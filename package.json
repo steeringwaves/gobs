@@ -1,5 +1,5 @@
 {
-  "name": "gobs",
+  "name": "@steeringwaves/gobs",
   "version": "0.0.1",
   "description": "gobs parallel project helper",
   "main": "bin/gobs",
