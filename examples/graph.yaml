@@ -1,0 +1,50 @@
+vars:
+  home_path: "${env.HOME}"
+  personal_workspace: "${app.config_dir}/.test-workspace/graph"
+  arch: "x86_64"
+
+digraphs:
+  status:
+    - id: wiki.status 
+      project: wiki
+      # command: status
+      exec: "echo \"arch=${vars.arch}\""
+    - id: wiki.whoami
+      upstream: wiki.status
+      project: wiki
+      exec:
+        - "whoami"
+        - "echo \"sleeping for 2 s\""
+        - "sleep 2"
+        - "echo \"sleep done\""
+      downstream: wiki.pwd
+    # next level
+    - id: wiki.pwd
+      project: wiki
+      command: pwd
+    # next level
+    - id: wiki.ls
+      upstream: wiki.pwd
+      project: wiki
+      exec: "ls -alh && sleep 5"
+    - id: wiki.date
+      upstream: wiki.pwd
+      project: wiki
+      exec: "sleep 1 && date"
+    # finally
+    - id: wiki.done
+      project: wiki
+      upstream:
+        - wiki.date
+        - wiki.ls
+      exec: "echo done"
+
+projects:
+- name: wiki
+  path: "${vars.personal_workspace}/${self.name}"
+  groups:
+  - example
+  commands:
+    status:
+    - git status
+    pwd: pwd

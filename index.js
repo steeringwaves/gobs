@@ -1,0 +1,1415 @@
+#!/usr/bin/env node
+/* eslint-disable no-loop-func */
+
+const _ = require("lodash");
+const fs = require("fs");
+const path = require("path");
+const util = require("util");
+const os = require("os");
+const yargs = require("yargs");
+const colors = require("colors");
+const yaml = require("yaml");
+
+const Log = require("./log.js");
+
+const Projects = require("./projects.js");
+const Git = require("./git.js");
+
+// const exec = util.promisify(child_process.exec);
+// const access = util.promisify(fs.access);
+const readFile = util.promisify(fs.readFile);
+const access = util.promisify(fs.access);
+
+const projects_argv = process.argv;
+
+yargs.parserConfiguration({ gobs: false });
+yargs.scriptName("gobs");
+yargs.usage("$0 <cmd> [args]");
+yargs.version("0.0.1");
+
+async function loadConfig(filename) {
+	if (typeof filename !== "string") {
+		throw new Error(`no config file specified`);
+	}
+
+	try {
+		fs.accessSync(filename, fs.constants.R_OK);
+	} catch (error) {
+		throw new Error(`failed to access ${filename}`);
+	}
+
+	const contents = (await readFile(filename)).toString();
+
+	let projects;
+
+	if (".json" === path.extname(filename).toLowerCase()) {
+		projects = JSON.parse(contents);
+		return projects;
+	}
+
+	if (".yaml" === path.extname(filename).toLowerCase() || ".yml" === path.extname(filename).toLowerCase()) {
+		projects = yaml.parse(contents);
+		return projects;
+	}
+
+	try {
+		projects = yaml.parse(contents);
+		return projects;
+	} catch (error) {
+		projects = JSON.parse(contents);
+		return projects;
+	}
+
+	// if (typeof projects.Root !== "string") {
+	// 	throw new Error(`no Root directory specified in ${filename}`);
+	// }
+
+	// try {
+	// 	fs.accessSync(projects.Root, fs.constants.R_OK);
+	// } catch (error) {
+	// 	throw new Error(`failed to access Root directory ${projects.Root}`);
+	// }
+}
+
+async function setup(argv) {
+	const args = {
+		vars: {},
+		config: undefined,
+		home_dir: os.homedir(),
+		app_dir: path.join(os.homedir(), ".gobs"),
+		work_dir: process.cwd(),
+		config_file: argv.config,
+		config_dir: path.dirname(argv.config),
+		verbose: false,
+		log: undefined,
+		projects: undefined,
+		loaded_projects: undefined
+	};
+
+	if (argv.verbose) {
+		args.verbose = true;
+	}
+
+	const logOpts = {
+		NoColor: false,
+		RawOutput: false
+	};
+
+	if (true === argv.disableColor) {
+		logOpts.NoColor = true;
+	}
+
+	if (true === argv.rawOutput) {
+		logOpts.RawOutput = true;
+	}
+
+	args.log = new Log(logOpts);
+
+	let config;
+	try {
+		config = await loadConfig(args.config_file);
+	} catch (error) {
+		if (error) {
+			process.stderr.write(colors.red(`${error.message}\n`));
+		}
+		process.exit(1);
+	}
+
+	if (_.isString(argv.vars)) {
+		argv.vars = [argv.vars];
+	}
+
+	if (_.isArray(argv.vars)) {
+		argv.vars.forEach((kv) => {
+			const fields = kv.split(/=(.*)/s);
+			if (fields.length < 2) {
+				return;
+			}
+			args.vars[fields[0]] = fields[1];
+		});
+	}
+
+	// TODO ci flag?
+	args.projects = new Projects(args, config);
+
+	const opts = {
+		groups: argv.group,
+		without: argv.without
+	};
+
+	try {
+		args.loaded_projects = await args.projects.Load(opts);
+	} catch (error) {
+		if (error) {
+			process.stderr.write(colors.red(`${error.message}\n`));
+		}
+		process.exit(1);
+	}
+
+	args.config = config;
+
+	return args;
+}
+
+async function main() {
+	// Change directory to our script directory
+	// try {
+	// 	process.chdir(__dirname);
+	// } catch (err) {
+	// 	console.error(`chdir: ${err}`);
+	// }
+
+	// console.log(projects.Group);
+
+	yargs.command(
+		"list <group>",
+		"shows list of projects",
+		(y) => {
+			y.completion("completion", async (current, argv, done) => {
+				const args = await setup(argv);
+
+				for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+					console.log(args.loaded_projects.groups[i]);
+				}
+
+				process.exit(0);
+			});
+
+			y.positional("group", {
+				describe: "the group to use",
+				default: undefined,
+				type: "string"
+			});
+
+			y.option("only-groups", {
+				type: "boolean",
+				description: "Only show groups"
+			});
+		},
+		async (argv) => {
+			const setupObj = await setup(argv);
+
+			if (argv.onlyGroups) {
+				process.stdout.write(`${setupObj.loaded_projects.groups.join(" ")}\n`);
+				process.exit(0);
+			}
+
+			let projects;
+
+			try {
+				projects = setupObj.projects.List().map((obj) => obj.name);
+			} catch (error) {
+				if (error) {
+					process.stderr.write(colors.red(`${error.message}\n`));
+				}
+				process.exit(1);
+			}
+
+			process.stdout.write(`${projects.join(" ")}\n`);
+		}
+	);
+
+	yargs.command(
+		"string <group>",
+		"render projects object to string",
+		(y) => {
+			y.completion("completion", async (current, argv, done) => {
+				const args = await setup(argv);
+
+				for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+					console.log(args.loaded_projects.groups[i]);
+				}
+
+				process.exit(0);
+			});
+
+			y.positional("group", {
+				describe: "the group to use",
+				default: undefined,
+				type: "string"
+			});
+
+			y.option("json", {
+				type: "boolean",
+				description: "Render to json"
+			});
+		},
+		async (argv) => {
+			const setupObj = await setup(argv);
+
+			try {
+				if (argv.json) {
+					process.stdout.write(`${JSON.stringify(setupObj.loaded_projects, null, "\t")}\n`);
+					process.exit(0);
+				}
+
+				process.stdout.write(`${yaml.stringify(setupObj.loaded_projects)}\n`);
+				process.exit(0);
+			} catch (error) {
+				if (error) {
+					process.stderr.write(colors.red(`${error.message}\n`));
+				}
+				process.exit(1);
+			}
+		}
+	);
+
+	yargs.command(
+		"template <template>",
+		"render template",
+		(y) => {
+			y.positional("template", {
+				describe: "the template to use",
+				default: "all",
+				type: "string"
+			});
+
+			y.option("dry-run", {
+				alias: "-n",
+				type: "boolean",
+				description: "redner the template to stdout instead of creating a file."
+			});
+		},
+		async (argv) => {
+			const setupObj = await setup(argv);
+
+			try {
+				setupObj.projects.Template({
+					dry_run: argv.dryRun,
+					verbose: argv.verbose,
+					template: argv.template,
+					disable_parallel: false === argv.parallel
+				});
+			} catch (error) {
+				if (error) {
+					process.stderr.write(colors.red(`${error.message}\n`));
+				}
+				process.exit(1);
+			}
+		}
+	);
+
+	yargs.command(
+		"foreach <group> <command>",
+		"run command inside directory of all projects",
+		(y) => {
+			y.completion("completion", async (current, argv, done) => {
+				const args = await setup(argv);
+
+				for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+					console.log(args.loaded_projects.groups[i]);
+				}
+
+				process.exit(0);
+			});
+
+			y.positional("group", {
+				alias: "g",
+				describe: "the repo group to use",
+				default: "all",
+				type: "string"
+			});
+
+			y.positional("command", {
+				alias: "c",
+				describe: "the command to run in each repo directory",
+				default: "git status",
+				type: "string"
+			});
+
+			y.option("no-parallel", {
+				type: "boolean",
+				description: "Do not run in parallel"
+			});
+		},
+		async (argv) => {
+			const args = await setup(argv);
+
+			if (argv.ci) {
+				args.ci = true; //TODO
+			}
+
+			const git = new Git(args);
+
+			try {
+				await git.ForEach({
+					verbose: argv.verbose,
+					command: argv.command,
+					disable_parallel: false === argv.parallel
+				});
+			} catch (error) {
+				if (error) {
+					process.stderr.write(colors.red(`${error.message}\n`));
+				}
+				process.exit(1);
+			}
+		}
+	);
+
+	yargs.command(
+		"run <group> <command>",
+		"run predefined command inside projects",
+		(y) => {
+			y.completion("completion", async (current, argv, done) => {
+				const args = await setup(argv);
+
+				for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+					console.log(args.loaded_projects.groups[i]);
+				}
+
+				process.exit(0);
+			});
+
+			y.positional("group", {
+				alias: "g",
+				describe: "the repo group to use",
+				default: "all",
+				type: "string"
+			});
+
+			y.positional("command", {
+				alias: "c",
+				describe: "the command to run in each repo directory",
+				default: "git status",
+				type: "string"
+			});
+
+			y.option("no-parallel", {
+				type: "boolean",
+				description: "Do not run in parallel"
+			});
+		},
+		async (argv) => {
+			const args = await setup(argv);
+
+			if (argv.ci) {
+				args.ci = true; //TODO
+			}
+
+			const git = new Git(args);
+
+			try {
+				await git.Run({
+					verbose: argv.verbose,
+					command: argv.command,
+					disable_parallel: false === argv.parallel
+				});
+			} catch (error) {
+				if (error) {
+					process.stderr.write(colors.red(`${error.message}\n`));
+				}
+				process.exit(1);
+			}
+		}
+	);
+
+	yargs.command(
+		"digraph <command>",
+		"run predefined digraph inside projects",
+		(y) => {
+			y.completion("completion", async (current, argv, done) => {
+				const args = await setup(argv);
+
+				for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+					console.log(args.loaded_projects.groups[i]);
+				}
+
+				process.exit(0);
+			});
+
+			y.positional("command", {
+				alias: "c",
+				describe: "the command to run in each repo directory",
+				default: "",
+				type: "string"
+			});
+
+			y.option("no-parallel", {
+				type: "boolean",
+				description: "Do not run in parallel"
+			});
+		},
+		async (argv) => {
+			const args = await setup(argv);
+
+			try {
+				await args.projects.ExecDiGraph({
+					verbose: argv.verbose,
+					command: argv.command,
+					disable_parallel: false === argv.parallel
+				});
+			} catch (error) {
+				if (error) {
+					process.stderr.write(colors.red(`${error.message}\n`));
+				}
+				process.exit(1);
+			}
+		}
+	);
+
+	yargs.command(
+		"git <group>",
+		"run git commands",
+		async (yargsGit) => {
+			yargsGit.command(
+				"status <group>",
+				"shows git status",
+				(y) => {
+					y.completion("completion", async (current, argv, done) => {
+						const args = await setup(argv);
+
+						for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+							console.log(args.loaded_projects.groups[i]);
+						}
+
+						process.exit(0);
+					});
+
+					y.positional("group", {
+						alias: "g",
+						describe: "the repo group to use",
+						default: "all",
+						type: "string"
+					});
+				},
+				async (argv) => {
+					const args = await setup(argv);
+					args.disable_parallel = true; // don't do parallel here
+
+					const git = new Git(args);
+
+					try {
+						await git.Status(args);
+					} catch (error) {
+						if (error) {
+							process.stderr.write(colors.red(`${error.message}\n`));
+						}
+						process.exit(1);
+					}
+				}
+			);
+
+			yargsGit.command(
+				"migrate <group>",
+				"switch to new Gitlab remote",
+				(y) => {
+					y.completion("completion", async (current, argv, done) => {
+						const args = await setup(argv);
+
+						for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+							console.log(args.loaded_projects.groups[i]);
+						}
+
+						process.exit(0);
+					});
+
+					y.positional("group", {
+						alias: "g",
+						describe: "the repo group to use",
+						default: "all",
+						type: "string"
+					});
+
+					y.option("remote", {
+						type: "string",
+						default: null,
+						description: "Use specified remote (must already exist)"
+					});
+				},
+				async (argv) => {
+					const args = await setup(argv);
+					args.disable_parallel = true; // don't do parallel here
+
+					const git = new Git(args);
+
+					try {
+						await git.Migrate(args);
+					} catch (error) {
+						if (error) {
+							process.stderr.write(colors.red(`${error.message}\n`));
+						}
+						process.exit(1);
+					}
+				}
+			);
+
+			yargsGit.command(
+				"clone <group>",
+				"clone latest git projects",
+				(y) => {
+					y.completion("completion", async (current, argv, done) => {
+						const args = await setup(argv);
+
+						for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+							console.log(args.loaded_projects.groups[i]);
+						}
+
+						process.exit(0);
+					});
+
+					y.positional("group", {
+						alias: "g",
+						describe: "the repo group to use",
+						default: "all",
+						type: "string"
+					});
+
+					y.option("remote", {
+						type: "string",
+						default: null,
+						description: "Use specified remote (must already exist)"
+					});
+
+					y.option("branch", {
+						alias: "b",
+						type: "string",
+						default: null,
+						description: "Use specified git branch"
+					});
+
+					y.option("mirror", {
+						type: "boolean",
+						description: "Mirror repo (only use when setting up a new remote)"
+					});
+
+					y.option("bare", {
+						alias: "B",
+						type: "boolean",
+						description: 'Use "--bare" git repo option'
+					});
+
+					y.option("depth", {
+						alias: "d",
+						type: "int",
+						default: null,
+						description: 'Use "--depth" git repo option'
+					});
+
+					y.option("manifest", {
+						type: "string",
+						default: null,
+						description: "Use specified manifest json file"
+					});
+				},
+				async (argv) => {
+					const args = await setup(argv);
+
+					if (argv.ci) {
+						args.ci = true; //TODO
+					}
+
+					const git = new Git(args);
+
+					try {
+						let manifest;
+
+						if (argv.manifest) {
+							manifest = JSON.parse(await fs.readFileSync(argv.manifest));
+						}
+
+						await git.Clone({
+							remote: argv.remote,
+							verbose: argv.verbose,
+							branch: argv.branch,
+							bare: argv.bare,
+							mirror: argv.mirror,
+							depth: argv.depth,
+							manifest,
+							disable_parallel: false === argv.parallel
+						});
+					} catch (error) {
+						if (error) {
+							process.stderr.write(colors.red(`${error.message}\n`));
+						}
+						process.exit(1);
+					}
+				}
+			);
+
+			yargsGit.command(
+				"pull <group>",
+				"pull latest git projects",
+				(y) => {
+					y.completion("completion", async (current, argv, done) => {
+						const args = await setup(argv);
+
+						for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+							console.log(args.loaded_projects.groups[i]);
+						}
+
+						process.exit(0);
+					});
+
+					y.positional("group", {
+						alias: "g",
+						describe: "the repo group to use",
+						default: "all",
+						type: "string"
+					});
+
+					y.option("remote", {
+						type: "string",
+						default: null,
+						description: "Use specified remote (must already exist)"
+					});
+
+					y.option("full-clone", {
+						alias: "C",
+						type: "boolean",
+						description: "Clone the repo and including all remote branches"
+					});
+
+					y.option("depth", {
+						alias: "d",
+						type: "int",
+						default: null,
+						description: 'Use "--depth" git repo option'
+					});
+				},
+				async (argv) => {
+					const args = await setup(argv);
+
+					if (argv.ci) {
+						args.ci = true;
+					}
+
+					const git = new Git(args);
+
+					try {
+						await git.Pull({
+							remote: argv.remote,
+							verbose: argv.verbose,
+							full_clone: argv.fullClone,
+							depth: argv.depth,
+							disable_parallel: false === argv.parallel
+						});
+					} catch (error) {
+						if (error) {
+							process.stderr.write(colors.red(`${error.message}\n`));
+						}
+						process.exit(1);
+					}
+				}
+			);
+
+			yargsGit.command(
+				"sync <group>",
+				"sync latest git projects",
+				(y) => {
+					y.completion("completion", async (current, argv, done) => {
+						const args = await setup(argv);
+
+						for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+							console.log(args.loaded_projects.groups[i]);
+						}
+
+						process.exit(0);
+					});
+
+					y.positional("group", {
+						alias: "g",
+						describe: "the repo group to use",
+						default: "all",
+						type: "string"
+					});
+
+					y.option("remote", {
+						type: "string",
+						default: null,
+						description: "Use specified remote (must already exist)"
+					});
+
+					y.option("branch", {
+						alias: "b",
+						type: "string",
+						default: null,
+						description: "Use specified git branch"
+					});
+
+					y.option("tag", {
+						alias: "t",
+						type: "string",
+						default: null,
+						description: "Use specified git tag"
+					});
+
+					y.option("latest-tag", {
+						alias: "T",
+						type: "string",
+						default: null,
+						description: "Search for a git tag using a regex pattern"
+					});
+
+					y.option("without-lfs", {
+						type: "boolean",
+						description: "Skip git lfs pull step"
+					});
+
+					y.option("mirror", {
+						type: "boolean",
+						description: "Mirror repo (only use when setting up a new remote)"
+					});
+
+					y.option("bare", {
+						alias: "B",
+						type: "boolean",
+						description: 'Use "--bare" git repo option'
+					});
+
+					y.option("full-clone", {
+						alias: "C",
+						type: "boolean",
+						description: "Clone the repo and including all remote branches"
+					});
+
+					y.option("force-reset", {
+						type: "boolean",
+						description: "Run git reset --hard before pulling latest (DANGEROUS!)"
+					});
+
+					y.option("depth", {
+						alias: "d",
+						type: "int",
+						default: null,
+						description: 'Use "--depth" git repo option'
+					});
+
+					y.option("manifest", {
+						type: "string",
+						default: null,
+						description: "Use specified manifest json file"
+					});
+				},
+				async (argv) => {
+					const args = await setup(argv);
+
+					if (argv.ci) {
+						args.ci = true; //TODO
+					}
+
+					const git = new Git(args);
+
+					try {
+						let manifest;
+
+						if (argv.manifest) {
+							manifest = JSON.parse(await fs.readFileSync(argv.manifest));
+						}
+
+						await git.Sync({
+							remote: argv.remote,
+							verbose: argv.verbose,
+							branch: argv.branch,
+							tag: argv.tag,
+							latest_tag_regex: argv.latestTag,
+							without_lfs: argv.withoutLfs,
+							bare: argv.bare,
+							full_clone: argv.fullClone,
+							mirror: argv.mirror,
+							force_reset: argv.forceReset,
+							depth: argv.depth,
+							manifest,
+							disable_parallel: false === argv.parallel
+						});
+					} catch (error) {
+						if (error) {
+							process.stderr.write(colors.red(`${error.message}\n`));
+						}
+						process.exit(1);
+					}
+				}
+			);
+
+			yargsGit.command(
+				"checkout <group>",
+				"checkout latest git projects",
+				(y) => {
+					y.completion("completion", async (current, argv, done) => {
+						const args = await setup(argv);
+
+						for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+							console.log(args.loaded_projects.groups[i]);
+						}
+
+						process.exit(0);
+					});
+
+					y.positional("group", {
+						alias: "g",
+						describe: "the repo group to use",
+						default: "all",
+						type: "string"
+					});
+
+					y.option("remote", {
+						type: "string",
+						default: null,
+						description: "Use specified remote (must already exist)"
+					});
+
+					y.option("branch", {
+						alias: "b",
+						type: "string",
+						default: null,
+						description: "Use specified git branch"
+					});
+
+					y.option("tag", {
+						alias: "t",
+						type: "string",
+						default: null,
+						description: "Use specified git tag"
+					});
+
+					y.option("latest-tag", {
+						alias: "T",
+						type: "string",
+						default: null,
+						description: "Search for a git tag using a regex pattern"
+					});
+
+					y.option("without-lfs", {
+						type: "boolean",
+						description: "Skip git lfs pull step"
+					});
+
+					y.option("mirror", {
+						type: "boolean",
+						description: "Mirror repo (only use when setting up a new remote)"
+					});
+
+					y.option("bare", {
+						alias: "B",
+						type: "boolean",
+						description: 'Use "--bare" git repo option'
+					});
+
+					y.option("full-clone", {
+						alias: "C",
+						type: "boolean",
+						description: "Clone the repo and including all remote branches"
+					});
+
+					y.option("force-reset", {
+						type: "boolean",
+						description: "Run git reset --hard before pulling latest (DANGEROUS!)"
+					});
+
+					y.option("depth", {
+						alias: "d",
+						type: "int",
+						default: null,
+						description: 'Use "--depth" git repo option'
+					});
+
+					y.option("manifest", {
+						type: "string",
+						default: null,
+						description: "Use specified manifest json file"
+					});
+				},
+				async (argv) => {
+					const args = await setup(argv);
+
+					if (argv.ci) {
+						args.ci = true; //TODO
+					}
+
+					const git = new Git(args);
+
+					try {
+						let manifest;
+
+						if (argv.manifest) {
+							manifest = JSON.parse(await fs.readFileSync(argv.manifest));
+						}
+
+						await git.Checkout({
+							remote: argv.remote,
+							verbose: argv.verbose,
+							branch: argv.branch,
+							tag: argv.tag,
+							latest_tag_regex: argv.latestTag,
+							without_lfs: argv.withoutLfs,
+							bare: argv.bare,
+							full_clone: argv.fullClone,
+							mirror: argv.mirror,
+							force_reset: argv.forceReset,
+							depth: argv.depth,
+							manifest,
+							disable_parallel: false === argv.parallel
+						});
+					} catch (error) {
+						if (error) {
+							process.stderr.write(colors.red(`${error.message}\n`));
+						}
+						process.exit(1);
+					}
+				}
+			);
+
+			yargsGit.command(
+				"fetch <group>",
+				"fetch latest git projects",
+				(y) => {
+					y.completion("completion", async (current, argv, done) => {
+						const args = await setup(argv);
+
+						for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+							console.log(args.loaded_projects.groups[i]);
+						}
+
+						process.exit(0);
+					});
+
+					y.positional("group", {
+						alias: "g",
+						describe: "the repo group to use",
+						default: "all",
+						type: "string"
+					});
+
+					y.option("remote", {
+						type: "string",
+						default: null,
+						description: "Use specified remote (must already exist)"
+					});
+
+					y.option("unshallow", {
+						type: "boolean",
+						description:
+							"If the source repository is complete, convert a shallow repository to a complete one, removing all the limitations imposed by shallow repositories.  If the source repository is shallow, fetch as much as possible so that the current repository has the same history as the source repository."
+					});
+
+					y.option("all", {
+						type: "boolean",
+						description: "Fetch all remotes."
+					});
+
+					y.option("tags", {
+						type: "boolean",
+						description: `Fetch all tags from the remote (i.e., fetch remote tags refs/tags/* into local tags with the same name), in addition to whatever else would otherwise be fetched. Using this option alone does not subject tags to pruning, even if --prune is used (though tags may be pruned anyway if they are also the destination of an explicit refspec; see --prune).`
+					});
+
+					y.option("depth", {
+						alias: "d",
+						type: "int",
+						default: null,
+						description: `Limit fetching to the specified number of commits from the tip of each remote branch history. If fetching to a shallow repository created by git clone with --depth=<depth> option (see git-clone(1)), deepen or shorten the history to the specified number of commits. Tags for the deepened commits are not fetched.`
+					});
+				},
+				async (argv) => {
+					const args = await setup(argv);
+
+					if (argv.ci) {
+						args.ci = true;
+					}
+
+					const git = new Git(args);
+
+					try {
+						await git.Fetch({
+							remote: argv.remote,
+							verbose: argv.verbose,
+							all: argv.all,
+							unshallow: argv.unshallow,
+							depth: argv.depth,
+							tags: argv.tags,
+							disable_parallel: false === argv.parallel
+						});
+					} catch (error) {
+						if (error) {
+							process.stderr.write(colors.red(`${error.message}\n`));
+						}
+						process.exit(1);
+					}
+				}
+			);
+
+			yargsGit.command(
+				"describe <group>",
+				"describe describe git projects",
+				(y) => {
+					y.completion("completion", async (current, argv, done) => {
+						const args = await setup(argv);
+
+						for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+							console.log(args.loaded_projects.groups[i]);
+						}
+
+						process.exit(0);
+					});
+
+					y.positional("group", {
+						alias: "g",
+						describe: "the repo group to use",
+						default: "all",
+						type: "string"
+					});
+
+					y.positional("output-file", {
+						describe: "save the json output to file",
+						default: null,
+						type: "string"
+					});
+
+					y.option("skip-tags", {
+						alias: "T",
+						type: "boolean",
+						description: "Do not list tags"
+					});
+				},
+				async (argv) => {
+					const args = await setup(argv);
+
+					if (argv.ci) {
+						args.ci = true;
+					}
+
+					const git = new Git(args);
+
+					try {
+						await git.Describe({
+							tags: !argv.skipTags,
+							output_file: argv.outputFile,
+							verbose: argv.verbose,
+							disable_parallel: false === argv.parallel
+						});
+					} catch (error) {
+						if (error) {
+							process.stderr.write(colors.red(`${error.message}\n`));
+						}
+						process.exit(1);
+					}
+				}
+			);
+
+			yargsGit.command(
+				"tag <group> [tagname]",
+				"create new tag",
+				(y) => {
+					y.completion("completion", async (current, argv, done) => {
+						const args = await setup(argv);
+
+						for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+							console.log(args.loaded_projects.groups[i]);
+						}
+
+						process.exit(0);
+					});
+
+					y.positional("group", {
+						alias: "g",
+						describe: "the repo group to use",
+						default: "all",
+						type: "string"
+					});
+
+					y.option("remote", {
+						type: "string",
+						default: null,
+						description: "Use specified remote (must already exist)"
+					});
+
+					y.option("branch", {
+						alias: "b",
+						type: "string",
+						default: null,
+						description: "Use specified git branch"
+					});
+
+					y.option("delete", {
+						alias: "d",
+						type: "boolean",
+						description: "Delete existing tags with the given names."
+					});
+
+					y.option("annotate", {
+						alias: "a",
+						type: "boolean",
+						description: "Make an unsigned, annotated tag object"
+					});
+
+					y.option("force", {
+						alias: "f",
+						type: "boolean",
+						description: "Replace an existing tag with the given name (instead of failing)"
+					});
+
+					y.option("message", {
+						alias: "m",
+						type: "string",
+						description:
+							"Use the given tag message (instead of prompting). Implies -a if none of -a, -s, or -u <keyid> is given."
+					});
+
+					y.option("sign", {
+						alias: "s",
+						type: "boolean",
+						description:
+							"Make a GPG-signed tag, using the default e-mail addresses key. The default behavior of tag GPG-signing is controlled by tag.gpgSign configuration variable if it exists, or disabled otherwise. See git-config(1)."
+					});
+
+					y.option("local-user", {
+						alias: "u",
+						type: "string",
+						description: "Make a GPG-signed tag, using the given key."
+					});
+
+					y.option("list", {
+						alias: "l",
+						type: "string",
+						description:
+							"List tags. With optional <pattern>..., e.g.  git tag --list 'v-*', list only the tags that match the pattern(s)."
+					});
+				},
+				async (argv) => {
+					const args = await setup(argv);
+
+					const git = new Git(args);
+
+					try {
+						await git.Tag({
+							verbose: argv.verbose,
+							name: argv.tagname,
+							delete: argv.delete,
+							annotate: argv.annotate,
+							force: argv.force,
+							message: argv.message,
+							sign: argv.sign,
+							local_user: argv.localUser,
+							list: argv.list,
+							disable_parallel: false === argv.parallel
+						});
+					} catch (error) {
+						if (error) {
+							process.stderr.write(colors.red(`${error.message}\n`));
+						}
+						process.exit(1);
+					}
+				}
+			);
+
+			yargsGit.command(
+				"push <group>",
+				"push latest git projects",
+				(y) => {
+					y.completion("completion", async (current, argv, done) => {
+						const args = await setup(argv);
+
+						for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+							console.log(args.loaded_projects.groups[i]);
+						}
+
+						process.exit(0);
+					});
+
+					y.positional("group", {
+						alias: "g",
+						describe: "the repo group to use",
+						default: "all",
+						type: "string"
+					});
+
+					y.option("remote", {
+						type: "string",
+						default: null,
+						description: "Use specified remote (must already exist)"
+					});
+
+					y.option("all", {
+						type: "boolean",
+						description: "Push all branches (i.e. refs under refs/heads/); cannot be used with other <refspec>."
+					});
+
+					y.option("dry-run", {
+						alias: "-n",
+						type: "boolean",
+						description: "Do everything except actually send the updates."
+					});
+
+					y.option("tags", {
+						type: "boolean",
+						description:
+							"All refs under refs/tags are pushed, in addition to refspecs explicitly listed on the command line."
+					});
+
+					y.option("force", {
+						alias: "f",
+						type: "boolean",
+						description: `Usually, the command refuses to update a remote ref that is not an ancestor of the local ref used to overwrite it. Also, when --force-with-lease option
+is used, the command refuses to update a remote ref whose current value does not match what is expected.
+
+This flag disables these checks, and can cause the remote repository to lose commits; use it with care.`
+					});
+
+					y.option("repo", {
+						type: "string",
+						description:
+							"This option is equivalent to the <repository> argument. If both are specified, the command-line argument takes precedence."
+					});
+
+					y.option("set-upstream", {
+						alias: "u",
+						type: "string",
+						description:
+							"For every branch that is up to date or successfully pushed, add upstream (tracking) reference, used by argument-less git-pull(1) and other commands. For more information, see branch.<name>.merge in git-config(1)."
+					});
+				},
+				async (argv) => {
+					const args = await setup(argv);
+
+					const git = new Git(args);
+
+					try {
+						await git.Push({
+							remote: argv.remote,
+							verbose: argv.verbose,
+							all: argv.all,
+							dry_run: argv.dryRun,
+							tags: argv.tags,
+							force: argv.force,
+							repo: argv.repo,
+							set_upstream: argv.setUpstream,
+							disable_parallel: false === argv.parallel
+						});
+					} catch (error) {
+						if (error) {
+							process.stderr.write(colors.red(`${error.message}\n`));
+						}
+						process.exit(1);
+					}
+				}
+			);
+
+			yargsGit.command(
+				"commit <group>",
+				"commit latest git projects",
+				(y) => {
+					y.completion("completion", async (current, argv, done) => {
+						const args = await setup(argv);
+
+						for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+							console.log(args.loaded_projects.groups[i]);
+						}
+
+						process.exit(0);
+					});
+
+					y.positional("group", {
+						alias: "g",
+						describe: "the repo group to use",
+						default: "all",
+						type: "string"
+					});
+
+					y.option("remote", {
+						type: "string",
+						default: null,
+						description: "Use specified remote (must already exist)"
+					});
+
+					y.option("no-verify", {
+						alias: "-n",
+						type: "boolean",
+						description: "This option bypasses the pre-commit and commit-msg hooks. See also githooks(5)."
+					});
+				},
+				async (argv) => {
+					const args = await setup(argv);
+
+					const git = new Git(args);
+
+					try {
+						await git.Commit({
+							remote: argv.remote,
+							verbose: argv.verbose,
+							no_verify: argv.noVerify,
+							disable_parallel: true
+						});
+					} catch (error) {
+						if (error) {
+							process.stderr.write(colors.red(`${error.message}\n`));
+						}
+						process.exit(1);
+					}
+				}
+			);
+
+			yargsGit.option("no-parallel", {
+				type: "boolean",
+				description: "Do not compile in parallel"
+			});
+
+			yargsGit.command(
+				"groups",
+				"list available git project groups",
+				(y) => {},
+				async (argv) => {
+					const args = await setup(argv);
+
+					for (let i = 0; i < args.loaded_projects.groups.length; i++) {
+						console.log(args.loaded_projects.groups[i]);
+					}
+				}
+			);
+
+			yargsGit.command(
+				"projects",
+				"list available git projects",
+				(y) => {},
+				async (argv) => {
+					const args = await setup(argv);
+
+					for (let i = 0; i < args.loaded_projects.projects.length; i++) {
+						console.log(args.loaded_projects.projects[i].name);
+					}
+				}
+			);
+
+			yargsGit.option("ci", {
+				type: "boolean",
+				description: "Run specifically during ci"
+			});
+		},
+		(argv) => {}
+	);
+
+	yargs.option("without", {
+		type: "string",
+		description: "Exclude certain projects"
+	});
+
+	yargs.option("vars", {
+		type: "string",
+		description: "Define a new vars key/value (format should be key=value)"
+	});
+
+	yargs.option("verbose", {
+		alias: "v",
+		type: "boolean",
+		description: "Run with verbose logging"
+	});
+
+	yargs.option("raw-output", {
+		type: "boolean",
+		description: "Raw output"
+	});
+
+	yargs.option("disable-color", {
+		type: "boolean",
+		description: "Disable color output"
+	});
+
+	yargs.option("config", {
+		// alias: "c",
+		describe: "the config file to use",
+		type: "string"
+	});
+
+	yargs.demandOption("config", "You must specify a path to a configuration file");
+
+	const argv = yargs.parse(projects_argv.slice(2));
+}
+
+main();
