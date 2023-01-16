@@ -134,6 +134,7 @@ async function setup(argv) {
 
 	const opts = {
 		groups: argv.group,
+		project: argv.project,
 		without: argv.without
 	};
 
@@ -317,6 +318,12 @@ async function main() {
 				type: "string"
 			});
 
+			y.option("project", {
+				describe: "the specify project(s) to use",
+				default: undefined,
+				type: "string"
+			});
+
 			y.option("no-parallel", {
 				type: "boolean",
 				description: "Do not run in parallel"
@@ -371,6 +378,12 @@ async function main() {
 				alias: "c",
 				describe: "the command to run in each repo directory",
 				default: "git status",
+				type: "string"
+			});
+
+			y.option("project", {
+				describe: "the specify project(s) to use",
+				default: undefined,
 				type: "string"
 			});
 

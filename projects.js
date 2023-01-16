@@ -76,7 +76,7 @@ class Projects {
 		return template(incoming, compileWith);
 	}
 
-	_includeProject(project, groups, withProjects, withoutProjects) {
+	_includeProject(project, projects, groups, withProjects, withoutProjects) {
 		if (_.isString(withProjects)) {
 			withProjects = [withProjects];
 		}
@@ -95,6 +95,19 @@ class Projects {
 			if (withoutProjects.includes(project.name)) {
 				return false;
 			}
+		}
+
+		if (_.isArray(projects) && projects.length > 0) {
+			for (let i = 0; i < projects.length; i++) {
+				if ("*" === projects[i]) {
+					return true;
+				}
+				if (projects[i] === project.name) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		if (_.isString(groups)) {
@@ -142,19 +155,20 @@ class Projects {
 			// }
 		}
 
-		if (_.isArray(groups)) {
+		if (_.isArray(groups) && groups.length > 0) {
 			for (let i = 0; i < groups.length; i++) {
 				if ("*" === groups[i]) {
 					return true;
 				}
-
-				if (groups[i] === project.name) {
-					return true;
-				}
+				// if (groups[i] === project.name) {
+				// 	return true;
+				// }
 				if (project.groups.includes(groups[i])) {
 					return true;
 				}
 			}
+
+			return false;
 		}
 
 		return false;
@@ -171,6 +185,7 @@ class Projects {
 
 		opts = _.defaultsDeep(opts, {
 			groups: ["*"],
+			project: undefined,
 			without: []
 		});
 
@@ -178,6 +193,12 @@ class Projects {
 			opts.without = [opts.without];
 		} else if (!_.isArray(opts.without)) {
 			opts.without = [];
+		}
+
+		if (_.isString(opts.project)) {
+			opts.project = [opts.project];
+		} else if (!_.isArray(opts.project)) {
+			opts.project = [];
 		}
 
 		const projects = _.cloneDeep(this._config);
@@ -197,7 +218,7 @@ class Projects {
 				throw new Error(`failed to template configuration: ${err.message}`);
 			}
 
-			if (!this._includeProject(project, opts.groups, undefined, opts.without)) {
+			if (!this._includeProject(project, opts.project, opts.groups, undefined, opts.without)) {
 				return;
 			}
 
