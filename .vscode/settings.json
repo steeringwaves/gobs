@@ -1,0 +1,54 @@
+{
+	"editor.tabSize": 4,
+	"[yaml]": {
+		"editor.formatOnType": true,
+		"editor.formatOnSave": true
+	},
+	"files.exclude": {
+		".git": true,
+		".deps": true,
+		"Release": true,
+		"node_modules": true,
+		"Release/**/*.js": {
+			"when": "$(basename).ts"
+		}
+	},
+	"files.watcherExclude": {
+		"**/.git/objects/**": true,
+		"**/node_modules/**": true,
+		"**/Release/**": true,
+		"**/.deps/**": true,
+		"vendors/**": true
+	},
+	"editor.formatOnSave": false,
+	"eslint.alwaysShowStatus": true,
+	"eslint.lintTask.enable": true,
+	"eslint.format.enable": true,
+	"eslint.onIgnoredFiles": "warn",
+	"eslint.debug": true,
+	"[javascript]": {
+		"editor.codeActionsOnSave": {
+			"source.fixAll.eslint": true
+		},
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.formatOnType": true,
+		"editor.formatOnSave": true
+	},
+	"[typescript]": {
+		"editor.codeActionsOnSave": {
+			"source.fixAll.eslint": true
+		},
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.formatOnType": true,
+		"editor.formatOnSave": true
+	},
+	"[vue]": {
+		"editor.codeActionsOnSave": {
+			"source.fixAll.eslint": true
+		},
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.formatOnType": true,
+		"editor.formatOnSave": true
+	},
+	"git.ignoreLimitWarning": true
+}

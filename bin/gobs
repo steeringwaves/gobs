@@ -9,6 +9,7 @@ const os = require("os");
 const yargs = require("yargs");
 const colors = require("colors");
 const yaml = require("yaml");
+const Find = require("../find.js");
 
 const Log = require("../log.js");
 
@@ -25,7 +26,7 @@ const projects_argv = process.argv;
 yargs.parserConfiguration({ gobs: false });
 yargs.scriptName("gobs");
 yargs.usage("$0 <cmd> [args]");
-yargs.version("0.0.1");
+yargs.version("0.1.0");
 
 async function loadConfig(filename) {
 	if (typeof filename !== "string") {
@@ -79,7 +80,6 @@ async function setup(argv) {
 		app_dir: path.join(os.homedir(), ".gobs"),
 		work_dir: process.cwd(),
 		config_file: argv.config,
-		config_dir: path.dirname(argv.config),
 		verbose: false,
 		log: undefined,
 		projects: undefined,
@@ -104,6 +104,12 @@ async function setup(argv) {
 	}
 
 	args.log = new Log(logOpts);
+
+	if (!args.config_file || "" === args.config_file) {
+		args.config_file = await Find.Up(".gobs.yml");
+	}
+
+	args.config_dir = path.dirname(args.config_file);
 
 	let config;
 	try {
@@ -1420,7 +1426,7 @@ This flag disables these checks, and can cause the remote repository to lose com
 		type: "string"
 	});
 
-	yargs.demandOption("config", "You must specify a path to a configuration file");
+	// yargs.demandOption("config", "You must specify a path to a configuration file");
 
 	const argv = yargs.parse(projects_argv.slice(2));
 }
