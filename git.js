@@ -547,7 +547,7 @@ class Git {
 										}
 
 										const commit_opts = {
-											message
+											message: message.message
 										};
 
 										for (let i = 0; i < projectsWithChanges.length; i++) {
