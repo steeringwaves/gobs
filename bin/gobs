@@ -759,6 +759,12 @@ async function main() {
 						description: "Search for a git tag using a regex pattern"
 					});
 
+					y.option("ignore-tag-mismatch", {
+						type: "boolean",
+						default: null,
+						description: "Ignore mismatched tags"
+					});
+
 					y.option("without-lfs", {
 						type: "boolean",
 						description: "Skip git lfs pull step"
@@ -821,6 +827,7 @@ async function main() {
 							branch: argv.branch,
 							tag: argv.tag,
 							latest_tag_regex: argv.latestTag,
+							ignore_tag_mismatch: argv.ignoreTagMismatch,
 							without_lfs: argv.withoutLfs,
 							bare: argv.bare,
 							full_clone: argv.fullClone,
@@ -887,6 +894,12 @@ async function main() {
 						description: "Search for a git tag using a regex pattern"
 					});
 
+					y.option("ignore-tag-mismatch", {
+						type: "boolean",
+						default: null,
+						description: "Ignore mismatched tags"
+					});
+
 					y.option("without-lfs", {
 						type: "boolean",
 						description: "Skip git lfs pull step"
@@ -949,6 +962,7 @@ async function main() {
 							branch: argv.branch,
 							tag: argv.tag,
 							latest_tag_regex: argv.latestTag,
+							ignore_tag_mismatch: argv.ignoreTagMismatch,
 							without_lfs: argv.withoutLfs,
 							bare: argv.bare,
 							full_clone: argv.fullClone,

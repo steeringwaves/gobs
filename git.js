@@ -1,6 +1,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable guard-for-in */
 /* eslint-disable no-restricted-syntax */
+/* eslint-disable no-loop-func */
 
 const _ = require("lodash");
 const fs = require("fs");
@@ -105,14 +106,18 @@ class Git {
 		};
 
 		const handler = this[handlerName](opts, args);
+		let firstErr;
 
 		if (opts.disable_parallel) {
 			for (let i = 0; i < projects.length; i++) {
-				await handler(projects[i]);
-				// if(exit_code !== 0)
-				// {
-				// 	break;
-				// }
+				try {
+					await handler(projects[i]);
+				} catch (error) {
+					firstErr = error;
+				}
+				if (firstErr) {
+					break;
+				}
 			}
 		} else {
 			// projects.forEach(async(project) =>
@@ -124,20 +129,40 @@ class Git {
 				const pqueue = new PQueue({ concurrency: 10 });
 
 				for (let i = 0; i < projects.length; i++) {
+					if (firstErr) {
+						break;
+					}
+
 					const project = projects[i];
 
 					pqueue
 						.add(() => handler(project))
 						.catch((err) => {
-							this._log.Error(`${project.name}`, "magenta", `${new Timestamp().Get()}`, err.message, "red");
+							if (!firstErr) {
+								firstErr = err;
+							} else {
+								this._log.Error(
+									`${project.name}`,
+									"magenta",
+									`${new Timestamp().Get()}`,
+									err.message,
+									"red"
+								);
+							}
 						});
 				}
 
 				await pqueue.onIdle();
-				// this._log.Debug("queue", "magenta", `${new Timestamp().Get()}`, "completed queue", "green");
+				// if (0 === exit_code) {
+				// 	this._log.Debug("queue", "magenta", `${new Timestamp().Get()}`, "completed queue", "green");
+				// }
 			} catch (err) {
 				this._log.Error("queue", "magenta", `${new Timestamp().Get()}`, err.message, "red");
 			}
+		}
+
+		if (firstErr) {
+			throw firstErr;
 		}
 	}
 
@@ -1066,6 +1091,7 @@ class Git {
 			verbose: this._opts.verbose,
 			tag: null,
 			latest_tag_regex: null,
+			ignore_tag_mismatch: false,
 			remote: "origin",
 			bare: false,
 			mirror: false,
@@ -1088,6 +1114,8 @@ class Git {
 
 		let projects_completed = 0;
 
+		this._foundTags = [];
+
 		const done = (code) => {
 			if (code !== 0) {
 				exit_code = 1;
@@ -1096,7 +1124,17 @@ class Git {
 			projects_completed++;
 
 			if (projects_completed === this._projects.length) {
-				process.exit(exit_code);
+				if (opts.latest_tag_regex && !opts.ignore_tag_mismatch) {
+					const tags = _.uniq(this._foundTags);
+					if (tags.length > 1) {
+						exit_code = 1;
+						throw new Error(`Multiple tags found matching regex ${opts.latest_tag_regex}: ${tags.join(", ")}`);
+					}
+				}
+
+				if (exit_code !== 0) {
+					throw new Error(`One or more projects had issues`);
+				}
 			}
 		};
 
@@ -1627,6 +1665,8 @@ class Git {
 						"yellow"
 					);
 
+					this._foundTags.push(tag);
+
 					try {
 						await this._commands.CheckoutLocalBranch(project, tag, opts.verbose);
 					} catch (error) {
@@ -1706,6 +1746,7 @@ class Git {
 			verbose: this._opts.verbose,
 			tag: null,
 			latest_tag_regex: null,
+			ignore_tag_mismatch: false,
 			remote: "origin",
 			bare: false,
 			mirror: false,
@@ -1728,6 +1769,8 @@ class Git {
 
 		let projects_completed = 0;
 
+		this._foundTags = [];
+
 		const done = (code) => {
 			if (code !== 0) {
 				exit_code = 1;
@@ -1736,7 +1779,17 @@ class Git {
 			projects_completed++;
 
 			if (projects_completed === this._projects.length) {
-				process.exit(exit_code);
+				if (opts.latest_tag_regex && !opts.ignore_tag_mismatch) {
+					const tags = _.uniq(this._foundTags);
+					if (tags.length > 1) {
+						exit_code = 1;
+						throw new Error(`Multiple tags found matching regex ${opts.latest_tag_regex}: ${tags.join(", ")}`);
+					}
+				}
+
+				if (exit_code !== 0) {
+					throw new Error(`One or more projects had issues`);
+				}
 			}
 		};
 
@@ -2043,6 +2096,8 @@ class Git {
 					"yellow"
 				);
 
+				this._foundTags.push(tag);
+
 				try {
 					await this._commands.CheckoutLocalBranch(project, tag, opts.verbose);
 				} catch (error) {
@@ -2299,6 +2354,10 @@ class Git {
 
 	async Sync(opts) {
 		return this._processHandler(opts, "_syncHandler");
+	}
+
+	async Checkout(opts) {
+		return this._processHandler(opts, "_checkoutHandler");
 	}
 
 	async ForEach(opts) {
