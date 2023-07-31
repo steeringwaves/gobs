@@ -2,7 +2,7 @@
 node_modules/**/*
 .deps/**/*
 .husky/**/*
-Release/**/*
+examples/**/*
 dist/**/*
 
 # Ignore all HTML files:
