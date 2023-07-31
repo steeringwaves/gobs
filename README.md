@@ -28,6 +28,7 @@ Why does this exist? I work on a lot of different git repos at the same time and
 - [x] Parallel execution option (right now it's on by default with `--no-parallel`)
 - [x] Specify projects that have no git repo
 - [x] Specify batches (directed graphs) that execute multiple commands across multiple projects using a directed graph to take full advantage to parallel processing (users can specify upstream or downstream steps)
+- [ ] Optionally render batches to terminal for debugging
 - [ ] Should we make the parallel execution option off by default and just use `-j` like `make`?
 - [ ] Allow overrides for uses that are always used from `.gobs/config.yml` (no color, global variables, etc...)
 - [x] `describe` should generate a manifest of all projects and include the current commit hash, if any files have changed and optionally any tags
