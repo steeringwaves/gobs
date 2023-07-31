@@ -106,7 +106,11 @@ async function setup(argv) {
 	args.log = new Log(logOpts);
 
 	if (!args.config_file || "" === args.config_file) {
-		args.config_file = await Find.Up(".gobs.yml");
+		if (process.env.GOBS_CONFIG) {
+			args.config_file = process.env.GOBS_CONFIG;
+		} else {
+			args.config_file = await Find.Up(".gobs.yml");
+		}
 	}
 
 	args.config_dir = path.dirname(args.config_file);
