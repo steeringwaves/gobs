@@ -15,6 +15,9 @@ Why does this exist? I work on a lot of different git repos at the same time and
 
 ## roadmap
 
+- [x] Specify configuration file via arugment `--config`
+- [x] Specify configuration file via environment varialbe `GOBS_CONFIG`
+- [x] Automatically search for configuration file recurisvely upwards looking for a file named `.gobs.yml`
 - [x] Allow multi-root configurations
 - [x] Allow filtering by groups `--group` eg `"test"` or even `"test || (home && 3dprinting)"
 - [x] Allow filtering by out project(s) by name `--without`
