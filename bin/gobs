@@ -364,7 +364,7 @@ async function main() {
 	);
 
 	yargs.command(
-		"run <command>",
+		"run [command]",
 		"run predefined command inside projects",
 		(y) => {
 			y.completion("completion", async (current, argv, done) => {
@@ -384,7 +384,7 @@ async function main() {
 				type: "string"
 			});
 
-			y.positional("command", {
+			y.option("command", {
 				alias: "c",
 				describe: "the command to run in each repo directory",
 				default: "git status",
@@ -401,12 +401,22 @@ async function main() {
 				type: "boolean",
 				description: "Do not run in parallel"
 			});
+
+			y.option("list", {
+				type: "boolean",
+				description: "List available batch commands"
+			});
 		},
 		async (argv) => {
 			const args = await setup(argv);
 
 			if (argv.ci) {
 				args.ci = true; //TODO
+			}
+
+			if (argv.list) {
+				process.stdout.write(`${args.projects.ListCommands(argv.project).join(" ")}\n`);
+				process.exit(0);
 			}
 
 			const git = new Git(args);
@@ -427,7 +437,7 @@ async function main() {
 	);
 
 	yargs.command(
-		"batch <command>",
+		"batch [command]",
 		"run predefined batch command",
 		(y) => {
 			y.completion("completion", async (current, argv, done) => {
@@ -440,7 +450,7 @@ async function main() {
 				process.exit(0);
 			});
 
-			y.positional("command", {
+			y.option("command", {
 				alias: "c",
 				describe: "the command to run in each repo directory",
 				default: "",
@@ -451,9 +461,19 @@ async function main() {
 				type: "boolean",
 				description: "Do not run in parallel"
 			});
+
+			y.option("list", {
+				type: "boolean",
+				description: "List available batch commands"
+			});
 		},
 		async (argv) => {
 			const args = await setup(argv);
+
+			if (argv.list) {
+				process.stdout.write(`${args.projects.ListBatches().join(" ")}\n`);
+				process.exit(0);
+			}
 
 			try {
 				await args.projects.ExecDiGraph({

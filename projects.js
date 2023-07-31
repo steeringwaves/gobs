@@ -337,6 +337,21 @@ class Projects {
 		return _.cloneDeep(this._config.projects);
 	}
 
+	ListBatches() {
+		return _.map(this._config.batches, (v, k) => k);
+	}
+
+	ListCommands(project) {
+		if (project) {
+			const proj = _.find(this._config.projects, { name: project });
+			if (!proj) {
+				throw new Error(`project ${project} not found`);
+			}
+			return _.map(proj.commands, (v, k) => k);
+		}
+		return _.uniq(_.map(this._config.projects, (v) => _.map(v.commands, (c, k) => k)).flat(1));
+	}
+
 	async Template(opts) {
 		opts = _.defaultsDeep(opts, {
 			output: undefined,
