@@ -432,7 +432,7 @@ class GitCommands {
 		});
 	}
 
-	async Pull(project, remote_name, all, bare, depth, verbose) {
+	async Pull(project, remote_name, all, bare, depth, verbose, branch) {
 		return new Promise((resolve, reject) => {
 			let opt = "";
 
@@ -448,6 +448,9 @@ class GitCommands {
 
 			if (!all) {
 				opt += ` ${remote_name}`;
+				if (branch && "string" === typeof branch && branch !== "") {
+					opt += ` ${branch}`;
+				}
 			}
 
 			const child = child_process.spawn("/bin/sh", ["-c", `cd "${path.normalize(project.path)}/" && git pull${opt}`]);

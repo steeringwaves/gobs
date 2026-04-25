@@ -1074,7 +1074,7 @@ class Git {
 			}
 
 			try {
-				await this._commands.Pull(project, opts.remote, fullClone, bare, depth, opts.verbose);
+				await this._commands.Pull(project, opts.remote, fullClone, bare, depth, opts.verbose, status.branch);
 			} catch (error) {
 				done(1);
 				return;
@@ -1701,7 +1701,7 @@ class Git {
 			if (!existing.bare && !(status && status.detached)) {
 				// Can't pull bare repos or detached state repos
 				try {
-					await this._commands.Pull(project, opts.remote, fullClone, bare, depth, opts.verbose);
+					await this._commands.Pull(project, opts.remote, fullClone, bare, depth, opts.verbose, status && status.branch);
 				} catch (error) {
 					done(1);
 					return;

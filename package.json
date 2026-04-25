@@ -12,15 +12,16 @@
   "publishConfig": {
     "access": "public"
   },
-  "main": "./bin/gobs",
+  "main": "./dist/gobs",
   "bin": {
-    "gobs": "./bin/gobs"
+    "gobs": "./dist/gobs"
   },
   "preferGlobal": true,
   "scripts": {
-    "gobs": "./bin/gobs",
+    "build": "node build.js",
+    "gobs": "./dist/gobs",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "examples-projects": "./bin/gobs --config examples/projects.yaml"
+    "examples-projects": "./dist/gobs --config examples/projects.yaml"
   },
   "repository": {
     "type": "git",
@@ -43,7 +44,7 @@
     "@steeringwaves/eslint-config": "^1.0.4",
     "@steeringwaves/prettier-config": "^1.0.1",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "esbuild": "^0.12.26",
+    "esbuild": "^0.28.0",
     "eslint": "^8.45.0",
 		"eslint-config-airbnb": "^19.0.4",
 		"eslint-config-airbnb-base": "^15.0.0",
