@@ -3,10 +3,10 @@
 /* eslint-disable guard-for-in */
 /* eslint-disable no-restricted-syntax */
 
-const _ = require("lodash");
 const fs = require("fs");
 const path = require("path");
 const util = require("util");
+const _ = require("lodash");
 
 const Handlebars = require("handlebars");
 const GraphExec = require("./graphexec.js");
@@ -223,7 +223,7 @@ class Projects {
 			}
 
 			// check if project is explicitly disabled via the `enabled` field
-			if (project.enabled === false || project.enabled === "false") {
+			if (false === project.enabled || "false" === project.enabled) {
 				return;
 			}
 
