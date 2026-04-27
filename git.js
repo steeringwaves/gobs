@@ -1043,8 +1043,9 @@ class Git {
 				}
 			}
 
+			let status;
 			try {
-				const status = await this._commands.Status(project, opts.verbose, opts.verbose);
+				status = await this._commands.Status(project, opts.verbose, opts.verbose);
 
 				if (status.detached) {
 					this._log.Error(
