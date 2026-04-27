@@ -222,6 +222,11 @@ class Projects {
 				throw new Error(`failed to template configuration: ${err.message}`);
 			}
 
+			// check if project is explicitly disabled via the `enabled` field
+			if (project.enabled === false || project.enabled === "false") {
+				return;
+			}
+
 			if (!this._includeProject(project, opts.project, opts.groups, undefined, opts.without)) {
 				return;
 			}
