@@ -2,12 +2,12 @@
 /* eslint-disable guard-for-in */
 /* eslint-disable no-restricted-syntax */
 
-const _ = require("lodash");
 const fs = require("fs");
 const child_process = require("child_process");
 
 const util = require("util");
 const path = require("path");
+const _ = require("lodash");
 
 const Timestamp = require("./Lib/Utilities/Timestamp.js");
 

@@ -3,10 +3,8 @@ const UUID = require("./UUID.js");
 const Edge = require("./Edge.js");
 const EventEmitter = require("events").EventEmitter;
 
-class Vertex extends EventEmitter
-{
-	constructor(opt)
-	{
+class Vertex extends EventEmitter {
+	constructor(opt) {
 		super();
 
 		opt = _.defaultsDeep(opt, {
@@ -18,18 +16,13 @@ class Vertex extends EventEmitter
 		this.Edges = opt.Edges;
 	}
 
-	GetAdjacent()
-	{
+	GetAdjacent() {
 		const adjacent = [];
 
-		_.each(this.Edges, (edge) =>
-		{
-			if(!edge.Directed)
-			{
+		_.each(this.Edges, (edge) => {
+			if (!edge.Directed) {
 				adjacent.push(edge.GetOppositeVertexFrom(this));
-			}
-			else if(edge.Directed && edge.From.ID === this.ID)
-			{
+			} else if (edge.Directed && edge.From.ID === this.ID) {
 				adjacent.push(edge.To);
 			}
 		});
@@ -37,18 +30,13 @@ class Vertex extends EventEmitter
 		return adjacent;
 	}
 
-	GetPrecedent()
-	{
+	GetPrecedent() {
 		const precedent = [];
 
-		_.each(this.Edges, (edge) =>
-		{
-			if(!edge.Directed)
-			{
+		_.each(this.Edges, (edge) => {
+			if (!edge.Directed) {
 				precedent.push(edge.GetOppositeVertexFrom(this));
-			}
-			else if(edge.Directed && edge.To.ID === this.ID)
-			{
+			} else if (edge.Directed && edge.To.ID === this.ID) {
 				precedent.push(edge.From);
 			}
 		});
@@ -56,8 +44,7 @@ class Vertex extends EventEmitter
 		return precedent;
 	}
 
-	AddEdgeTo(vertex, opt)
-	{
+	AddEdgeTo(vertex, opt) {
 		opt = _.defaultsDeep(opt, {
 			From: this,
 			To: vertex // User has to fill this in.
@@ -72,14 +59,11 @@ class Vertex extends EventEmitter
 		return edge;
 	}
 
-	GetEdgeBetween(vertex)
-	{
+	GetEdgeBetween(vertex) {
 		let result = null;
 
-		_.each(this.Edges, (edge) =>
-		{
-			if(edge.HasVertex(vertex))
-			{
+		_.each(this.Edges, (edge) => {
+			if (edge.HasVertex(vertex)) {
 				result = edge;
 				return false; // break
 			}
@@ -90,19 +74,15 @@ class Vertex extends EventEmitter
 		return result;
 	}
 
-	HasEdgeBetween(vertex)
-	{
+	HasEdgeBetween(vertex) {
 		return this.GetEdgeBetween(vertex) !== null;
 	}
 
-	HasEdge(target_edge)
-	{
+	HasEdge(target_edge) {
 		let found = false;
 
-		_.each(this.Edges, (edge) =>
-		{
-			if(_.isEqual(edge, target_edge))
-			{
+		_.each(this.Edges, (edge) => {
+			if (_.isEqual(edge, target_edge)) {
 				found = true;
 				return false; // break
 			}
@@ -113,12 +93,9 @@ class Vertex extends EventEmitter
 		return found;
 	}
 
-	RemoveEdge(target_edge, dont_recurse)
-	{
-		_.remove(this.Edges, (edge) =>
-		{
-			if(!dont_recurse)
-			{
+	RemoveEdge(target_edge, dont_recurse) {
+		_.remove(this.Edges, (edge) => {
+			if (!dont_recurse) {
 				edge.GetOppositeVertexFrom(this).RemoveEdge(target_edge, true);
 			}
 
@@ -126,40 +103,30 @@ class Vertex extends EventEmitter
 		});
 	}
 
-	RemoveEdgesBetween(vertex, dont_recurse)
-	{
-		_.remove(this.Edges, (edge) =>
-		{
-			if(!dont_recurse)
-			{
+	RemoveEdgesBetween(vertex, dont_recurse) {
+		_.remove(this.Edges, (edge) => {
+			if (!dont_recurse) {
 				edge.GetOppositeVertexFrom(this).RemoveEdgesBetween(this, true);
 			}
 			return edge.HasVertex(vertex);
 		});
 	}
 
-	Serialize()
-	{
+	Serialize() {
 		return this.ID;
 	}
 
-	Sort()
-	{
-		this.Edges = _.sortBy(this.Edges, edge => edge.SortIdentifier);
+	Sort() {
+		this.Edges = _.sortBy(this.Edges, (edge) => edge.SortIdentifier);
 	}
 
-	Indegree()
-	{
+	Indegree() {
 		let degree = 0;
 
-		_.each(this.Edges, (edge) =>
-		{
-			if(!edge.Directed)
-			{
+		_.each(this.Edges, (edge) => {
+			if (!edge.Directed) {
 				degree++;
-			}
-			else if(edge.Directed && edge.To.ID === this.ID)
-			{
+			} else if (edge.Directed && edge.To.ID === this.ID) {
 				degree++;
 			}
 		});
@@ -167,18 +134,13 @@ class Vertex extends EventEmitter
 		return degree;
 	}
 
-	Outdegree()
-	{
+	Outdegree() {
 		let degree = 0;
 
-		_.each(this.Edges, (edge) =>
-		{
-			if(!edge.Directed)
-			{
+		_.each(this.Edges, (edge) => {
+			if (!edge.Directed) {
 				degree++;
-			}
-			else if(edge.Directed && edge.From.ID === this.ID)
-			{
+			} else if (edge.Directed && edge.From.ID === this.ID) {
 				degree++;
 			}
 		});

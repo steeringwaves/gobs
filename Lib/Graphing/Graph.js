@@ -3,47 +3,34 @@ const Vertex = require("./Vertex.js");
 const Edge = require("./Edge.js");
 
 // Inspired by https://github.com/datavis-tech/graph-data-structure
-class Graph
-{
-	constructor(opt)
-	{
+class Graph {
+	constructor(opt) {
 		opt = _.defaultsDeep(opt, { Vertices: {} });
 
 		this.Vertices = opt.Vertices;
 	}
 
-	AddVertex(vertex)
-	{
-		if(!this.Vertices[vertex.ID])
-		{
+	AddVertex(vertex) {
+		if (!this.Vertices[vertex.ID]) {
 			this.Vertices[vertex.ID] = vertex;
-		}
-		else
-		{
+		} else {
 			throw new Error(`A vertex with ID ${vertex.ID} already exists in the graph`);
 		}
 	}
 
-	RemoveVertex(target_vertex)
-	{
-		if(this.Vertices[target_vertex.ID])
-		{
+	RemoveVertex(target_vertex) {
+		if (this.Vertices[target_vertex.ID]) {
 			delete this.Vertices[target_vertex.ID];
-		}
-		else
-		{
+		} else {
 			throw new Error("Vertex with ID does not exist in the graph");
 		}
 	}
 
-	HasEdge(target_edge)
-	{
+	HasEdge(target_edge) {
 		let found = false;
 
-		_.each(this.Vertices, (vertex) =>
-		{
-			if(vertex.HasEdge(target_edge))
-			{
+		_.each(this.Vertices, (vertex) => {
+			if (vertex.HasEdge(target_edge)) {
 				found = true;
 				return false; // break
 			}
@@ -54,26 +41,19 @@ class Graph
 		return found;
 	}
 
-	GetEdgeBetween(left, right)
-	{
+	GetEdgeBetween(left, right) {
 		let found = null;
 
-		_.each(this.Vertices, (vertex) =>
-		{
-			if(vertex.ID === left.ID)
-			{
+		_.each(this.Vertices, (vertex) => {
+			if (vertex.ID === left.ID) {
 				const test = vertex.GetEdgeBetween(right);
-				if(test !== null)
-				{
+				if (test !== null) {
 					found = test;
 					return false; // break
 				}
-			}
-			else if(vertex.ID === right.ID)
-			{
+			} else if (vertex.ID === right.ID) {
 				const test = vertex.GetEdgeBetween(left);
-				if(test !== null)
-				{
+				if (test !== null) {
 					found = test;
 					return false; // break
 				}
@@ -85,36 +65,28 @@ class Graph
 		return found;
 	}
 
-	HasEdgeBetween(left, right)
-	{
+	HasEdgeBetween(left, right) {
 		return this.GetEdgeBetween(left, right) !== null;
 	}
 
-	GetVertexFromID(id)
-	{
+	GetVertexFromID(id) {
 		return this.Vertices[id];
 	}
 
-	HasVertex(target_vertex)
-	{
-		if(this.GetVertexFromID(target_vertex.ID))
-		{
+	HasVertex(target_vertex) {
+		if (this.GetVertexFromID(target_vertex.ID)) {
 			return true;
 		}
 
 		return false;
 	}
 
-	IsDirected()
-	{
+	IsDirected() {
 		let is_directed = false;
 
-		_.each(this.Vertices, (vertex) =>
-		{
-			_.each(vertex.Edges, (edge) =>
-			{
-				if(edge.Directed)
-				{
+		_.each(this.Vertices, (vertex) => {
+			_.each(vertex.Edges, (edge) => {
+				if (edge.Directed) {
 					is_directed = true;
 					return false; // break
 				}
@@ -122,8 +94,7 @@ class Graph
 				return true; // continue
 			});
 
-			if(is_directed)
-			{
+			if (is_directed) {
 				return false; // break
 			}
 
@@ -133,12 +104,9 @@ class Graph
 		return is_directed;
 	}
 
-	SetAllDirected(directed)
-	{
-		_.each(this.Vertices, (vertex) =>
-		{
-			_.each(vertex.Edges, (edge) =>
-			{
+	SetAllDirected(directed) {
+		_.each(this.Vertices, (vertex) => {
+			_.each(vertex.Edges, (edge) => {
 				edge.Directed = directed;
 			});
 		});
@@ -146,8 +114,7 @@ class Graph
 
 	// Inspired by https://github.com/datavis-tech/graph-data-structure/blob/master/index.ts#L178
 	// This is the popular CLRS Depth First Search, an industry gold standard.
-	DepthFirstSearch(opt)
-	{
+	DepthFirstSearch(opt) {
 		opt = _.defaultsDeep(opt, {
 			Sources: null,
 			IncludeSources: true,
@@ -156,13 +123,11 @@ class Graph
 			TopologicalSorting: false
 		});
 
-		if(null === opt.Sources)
-		{
+		if (null === opt.Sources) {
 			opt.Sources = this.Vertices;
 		}
 
-		if(opt.TopologicalSorting && !opt.IsDirected)
-		{
+		if (opt.TopologicalSorting && !opt.IsDirected) {
 			throw new Error("Topological sorting on an undirected graph is not meaningfull");
 		}
 
@@ -178,42 +143,31 @@ class Graph
 		const visiting = {};
 		const list = [];
 
-		const dfs_visit = (vertex, parent) =>
-		{
+		const dfs_visit = (vertex, parent) => {
 			//console.log(`dfs_visit: visiting: ${vertex.ID} ${parent ? `(from ${parent.ID})` : ""} (visited: ${visited[vertex.ID]}, visiting: ${visiting[vertex.ID]})`);
 			// Cycle detection, very helpful chart: https://walkccc.me/CLRS/Chap22/22.3/
-			if(opt.IsDirected)
-			{
-				if(visiting[vertex.ID] && !opt.AllowCycle) // && opt.IsDirected)
-				{
+			if (opt.IsDirected) {
+				if (visiting[vertex.ID] && !opt.AllowCycle) {
+					// && opt.IsDirected)
 					throw new Error(`Cycle exists from ${vertex.ID} to ${parent.ID}`);
 				}
-			}
-			else
-			{
+			} else {
 				// 15:11 <cherim_> Every time you consider an edge that leads to an already visited vertex which is not your parent in the DFS tree you find a cycle
-				if(visited[vertex.ID] && !opt.AllowCycle)
-				{
+				if (visited[vertex.ID] && !opt.AllowCycle) {
 					throw new Error(`Cycle exists from ${vertex.ID} to ${parent.ID}`);
 				}
 			}
 
-			if(!visited[vertex.ID])
-			{
+			if (!visited[vertex.ID]) {
 				visiting[vertex.ID] = true;
 				visited[vertex.ID] = true;
 
-				_.each(vertex.GetAdjacent(), (adj) =>
-				{
+				_.each(vertex.GetAdjacent(), (adj) => {
 					//console.log(`${vertex.ID} has adjacent: ${adj.ID}`);
-					if(opt.IsDirected)
-					{
+					if (opt.IsDirected) {
 						dfs_visit(adj, vertex);
-					}
-					else
-					{
-						if((parent && adj.ID !== parent.ID) || !parent)
-						{
+					} else {
+						if ((parent && adj.ID !== parent.ID) || !parent) {
 							dfs_visit(adj, vertex);
 						}
 					}
@@ -224,30 +178,21 @@ class Graph
 			}
 		};
 
-		if(opt.IncludeSources)
-		{
-			_.each(opt.Sources, (source) =>
-			{
-				if(!visited[source.ID])
-				{
+		if (opt.IncludeSources) {
+			_.each(opt.Sources, (source) => {
+				if (!visited[source.ID]) {
 					//console.log(`dfs_visit: starting from source: ${source.ID}`);
 					dfs_visit(source);
 				}
 			});
-		}
-		else
-		{
-			_.each(opt.Sources, (source) =>
-			{
+		} else {
+			_.each(opt.Sources, (source) => {
 				visited[source.ID] = true;
 			});
 
-			_.each(opt.Sources, (source) =>
-			{
-				_.each(source.GetAdjacent(), (adj) =>
-				{
-					if(!visited[source.ID])
-					{
+			_.each(opt.Sources, (source) => {
+				_.each(source.GetAdjacent(), (adj) => {
+					if (!visited[source.ID]) {
 						//console.log(`dfs_visit: starting from source: ${source.ID}`);
 						dfs_visit(adj);
 					}
@@ -258,20 +203,15 @@ class Graph
 		return list;
 	}
 
-	HasCycle(opt)
-	{
+	HasCycle(opt) {
 		opt = _.defaultsDeep(opt, { IncludeSources: true });
 
 		opt.AllowCycle = false;
 
-		try
-		{
+		try {
 			this.DepthFirstSearch(opt);
-		}
-		catch(err)
-		{
-			if(err.message && err.message.indexOf("Cycle exists") >= 0)
-			{
+		} catch (err) {
+			if (err.message && err.message.indexOf("Cycle exists") >= 0) {
 				return true;
 			}
 
@@ -281,31 +221,23 @@ class Graph
 		return false;
 	}
 
-	TopologicalSort(opt)
-	{
+	TopologicalSort(opt) {
 		opt = _.defaultsDeep(opt, { TopologicalSorting: true });
 
 		return this.DepthFirstSearch(opt).reverse();
 	}
 
-	GetLeaves()
-	{
+	GetLeaves() {
 		const leaves = [];
 		const is_directed = this.IsDirected();
 
-		_.each(this.Vertices, (vertex) =>
-		{
-			if(is_directed)
-			{
-				if(0 === vertex.Outdegree() && vertex.Indegree() >= 1)
-				{
+		_.each(this.Vertices, (vertex) => {
+			if (is_directed) {
+				if (0 === vertex.Outdegree() && vertex.Indegree() >= 1) {
 					leaves.push(vertex);
 				}
-			}
-			else
-			{
-				if(1 === vertex.Indegree())
-				{
+			} else {
+				if (1 === vertex.Indegree()) {
 					leaves.push(vertex);
 				}
 			}
@@ -314,18 +246,14 @@ class Graph
 		return leaves;
 	}
 
-	GetRoots()
-	{
+	GetRoots() {
 		const roots = [];
-		if(!this.IsDirected())
-		{
+		if (!this.IsDirected()) {
 			throw new Error("Finding roots of an undirected graph is not meaningfull");
 		}
 
-		_.each(this.Vertices, (vertex) =>
-		{
-			if(0 === vertex.Indegree())
-			{
+		_.each(this.Vertices, (vertex) => {
+			if (0 === vertex.Indegree()) {
 				roots.push(vertex);
 			}
 		});
@@ -333,10 +261,8 @@ class Graph
 		return roots;
 	}
 
-	Sort()
-	{
-		_.each(this.Vertices, (vertex) =>
-		{
+	Sort() {
+		_.each(this.Vertices, (vertex) => {
 			vertex.Sort();
 		});
 
@@ -344,47 +270,36 @@ class Graph
 		//this.Vertices = _.sortBy(this.Vertices, vertex => vertex.ID);
 	}
 
-	_prune()
-	{
+	_prune() {
 		const edges_to_remove = [];
 
-		_.each(this.Vertices, (vertex) =>
-		{
-			_.each(vertex.Edges, (edge) =>
-			{
+		_.each(this.Vertices, (vertex) => {
+			_.each(vertex.Edges, (edge) => {
 				const opp = edge.GetOppositeVertexFrom(vertex);
 
-				if(!this.HasVertex(opp))
-				{
+				if (!this.HasVertex(opp)) {
 					edges_to_remove.push(edge);
 				}
 			});
 		});
 
-		_.each(this.Vertices, (vertex) =>
-		{
-			_.each(edges_to_remove, (edge) =>
-			{
-				try
-				{
+		_.each(this.Vertices, (vertex) => {
+			_.each(edges_to_remove, (edge) => {
+				try {
 					vertex.RemoveEdge(edge);
-				}
-				catch(err)
-				{
+				} catch (err) {
 					throw err;
 				}
 			});
 		});
 	}
 
-	FragmentFrom(vertices)
-	{
+	FragmentFrom(vertices) {
 		// Create a new graph with only the desired vertices.
 		// NOTE: This hack here eliminates the need to override this function in extended classes.
 		const g = new (Object.getPrototypeOf(this).constructor)();
 
-		_.each(vertices, (vertex) =>
-		{
+		_.each(vertices, (vertex) => {
 			g.AddVertex(_.cloneDeep(vertex));
 		});
 
@@ -394,32 +309,27 @@ class Graph
 		return g;
 	}
 
-	MinimumSpanningTree()
-	{
+	MinimumSpanningTree() {
 		// TODO: https://en.wikipedia.org/wiki/Minimum_spanning_tree
 		// Prim’s algorithm runs faster in dense graphs.
 		// Kruskal’s algorithm runs faster in sparse graphs.
 		// Do a smart V vs. E detection and select one of the two?
 	}
 
-	MinimumBottleneckSpanningTree()
-	{
+	MinimumBottleneckSpanningTree() {
 		// TODO: https://en.wikipedia.org/wiki/Minimum_bottleneck_spanning_tree
 	}
 
-	Serialize()
-	{
+	Serialize() {
 		const graph = {
 			Vertices: [],
 			Edges: []
 		};
 
-		_.each(this.Vertices, (vertex) =>
-		{
+		_.each(this.Vertices, (vertex) => {
 			graph.Vertices.push(vertex.Serialize());
 
-			_.each(vertex.Edges, (edge) =>
-			{
+			_.each(vertex.Edges, (edge) => {
 				graph.Edges.push(edge.Serialize());
 			});
 		});
@@ -430,17 +340,14 @@ class Graph
 		return graph;
 	}
 
-	static Deserialize(obj)
-	{
+	static Deserialize(obj) {
 		const vertices = {};
-		_.each(obj.Vertices, (vertex_id) =>
-		{
+		_.each(obj.Vertices, (vertex_id) => {
 			vertices[vertex_id] = new Vertex({ ID: vertex_id });
 		});
 
 		const edges = [];
-		_.each(obj.Edges, (edge) =>
-		{
+		_.each(obj.Edges, (edge) => {
 			const edge_options = _.cloneDeep(edge);
 			edge_options.From = vertices[edge_options.From];
 			edge_options.To = vertices[edge_options.To];
@@ -449,12 +356,9 @@ class Graph
 			edges.push(new Edge(edge_options));
 		});
 
-		_.each(edges, (edge) =>
-		{
-			_.each(vertices, (vertex) =>
-			{
-				if(edge.From.ID === vertex.ID || edge.To.ID === vertex.ID)
-				{
+		_.each(edges, (edge) => {
+			_.each(vertices, (vertex) => {
+				if (edge.From.ID === vertex.ID || edge.To.ID === vertex.ID) {
 					vertex.Edges.push(edge);
 				}
 			});

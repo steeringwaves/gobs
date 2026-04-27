@@ -3,17 +3,17 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-loop-func */
 
-const _ = require("lodash");
 const fs = require("fs");
 const child_process = require("child_process");
 
 const util = require("util");
 const path = require("path");
+const os = require("os");
 const colors = require("colors");
 const inquirer = require("inquirer");
 const { default: PQueue } = require("p-queue");
 
-const os = require("os");
+const _ = require("lodash");
 
 const Timestamp = require("./Lib/Utilities/Timestamp.js");
 const GitCommands = require("./gitcommands.js");
@@ -1701,7 +1701,15 @@ class Git {
 			if (!existing.bare && !(status && status.detached)) {
 				// Can't pull bare repos or detached state repos
 				try {
-					await this._commands.Pull(project, opts.remote, fullClone, bare, depth, opts.verbose, status && status.branch);
+					await this._commands.Pull(
+						project,
+						opts.remote,
+						fullClone,
+						bare,
+						depth,
+						opts.verbose,
+						status && status.branch
+					);
 				} catch (error) {
 					done(1);
 					return;
