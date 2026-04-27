@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /* eslint-disable no-loop-func */
 
-const _ = require("lodash");
 const fs = require("fs");
 const path = require("path");
 const util = require("util");
 const os = require("os");
+const _ = require("lodash");
 const yargs = require("yargs");
 const colors = require("colors");
 const yaml = require("yaml");
